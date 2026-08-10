@@ -196,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 ActionChip(
                   label: const Text('Host'),
-                  onPressed: _loading ? null : () => _quickLogin('+251911000002', 'ET'),
+                  onPressed: _loading ? null : () => _quickLogin('+251988013094', 'ET'),
                 ),
               ],
             ),

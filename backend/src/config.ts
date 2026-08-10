@@ -23,9 +23,9 @@ export const config = {
   /** Minimum listed nightly rate in USD. */
   minNightlyUsd: parseFloat(process.env.MIN_NIGHTLY_USD ?? "50"),
   /** Public contact details shown on the website (update these for production). */
-  contactEmail: process.env.CONTACT_EMAIL ?? "hello@ethioguesthouses.com",
-  contactPhone: process.env.CONTACT_PHONE ?? "+251911000099",
-  contactWhatsapp: process.env.CONTACT_WHATSAPP ?? "+251911000099",
-  contactViber: process.env.CONTACT_VIBER ?? "+251911000099",
+  contactEmail: process.env.CONTACT_EMAIL ?? "addisuabebaw23@gmail.com",
+  contactPhone: process.env.CONTACT_PHONE ?? "+251988013094",
+  contactWhatsapp: process.env.CONTACT_WHATSAPP ?? "+251988013094",
+  contactViber: process.env.CONTACT_VIBER ?? "+251988013094",
   contactLabel: process.env.CONTACT_LABEL ?? "Ethio Guest Houses · Addis Ababa",
 };

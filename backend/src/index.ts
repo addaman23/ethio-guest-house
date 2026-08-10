@@ -1,6 +1,7 @@
 import { createApp } from "./app";
 import { config } from "./config";
 import { getDb } from "./db/database";
+import { ensureHostPhone } from "./db/ensureHostPhone";
 import { ensurePropertyImages } from "./db/ensurePropertyImages";
 import { ensurePropertyVideos } from "./db/ensurePropertyVideos";
 import { ensureUsdListingPrices } from "./db/ensureUsdListingPrices";
@@ -13,6 +14,7 @@ seedDatabase();
 ensurePropertyImages();
 ensurePropertyVideos();
 ensureUsdListingPrices();
+ensureHostPhone();
 
 const app = createApp();
 

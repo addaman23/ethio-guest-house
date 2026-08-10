@@ -15,7 +15,7 @@ class RolePickerScreen extends StatelessWidget {
         SnackBar(
           content: Text(
             role == UserRole.host
-                ? 'This account is not a host. Sign in with +251911000002 or register as host.'
+                ? 'This account is not a host. Sign in with +251988013094 or register as host.'
                 : 'Guest role not available on this account.',
           ),
         ),

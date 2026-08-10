@@ -178,6 +178,11 @@
         <div id="adminStats" class="row"></div>
       </div>
       <div class="card">
+        <h2>Booking request messages</h2>
+        <p class="muted">Also available at <a href="/owner">/owner</a> dashboard. Contact the guest, then approve or decline.</p>
+        <div id="adminMessages"></div>
+      </div>
+      <div class="card">
         <h2>Pending listings</h2>
         <div id="adminListings"></div>
       </div>
@@ -258,7 +263,7 @@
 
     document.getElementById('btnGuest').onclick = () => login('+251911000001', 'ET').then(loadGuest);
     document.getElementById('btnGuestUs').onclick = () => login('+12025550101', 'US').then(loadGuest);
-    document.getElementById('btnHost').onclick = () => login('+251911000002', 'ET').then(loadHost);
+    document.getElementById('btnHost').onclick = () => login('+251988013094', 'ET').then(loadHost);
     document.getElementById('loadProperties').onclick = loadProperties;
     document.getElementById('loadMyBookings').onclick = loadMyBookings;
     document.getElementById('loadHostBookings').onclick = loadHostBookings;
@@ -642,6 +647,32 @@
       document.getElementById('adminStats').innerHTML = Object.entries(stats.stats).map(([k,v]) =>
         `<div class="card" style="min-width:140px"><strong>${v}</strong><br><span class="muted">${k}</span></div>`
       ).join('');
+
+      const inbox = await api('/admin/messages', { admin: true });
+      document.getElementById('adminMessages').innerHTML = (inbox.messages || []).map(m => `
+        <div class="card">
+          <strong>${m.guestName}</strong> <span class="badge pending">${m.status}</span><br>
+          ${m.propertyTitle || 'Inquiry'} · ${m.guestPhone}
+          ${m.guestEmail ? ' · ' + m.guestEmail : ''}<br>
+          ${m.checkIn || '?'} → ${m.checkOut || '?'} · ${m.guests || 1} guests<br>
+          ${m.message ? `<em>${m.message}</em><br>` : ''}
+          <div class="row" style="margin-top:0.5rem">
+            ${m.contact?.whatsapp ? `<a class="btn-outline" style="padding:0.5rem 0.75rem;text-decoration:none" href="${m.contact.whatsapp}" target="_blank">WhatsApp</a>` : ''}
+            ${m.contact?.phone ? `<a class="btn-outline" style="padding:0.5rem 0.75rem;text-decoration:none" href="${m.contact.phone}">Call</a>` : ''}
+            <button class="btn-primary" data-msg-approve="${m.id}">Approve</button>
+            <button class="btn-outline" data-msg-decline="${m.id}">Decline</button>
+          </div>
+        </div>
+      `).join('') || '<p class="muted">No open booking request messages</p>';
+      document.querySelectorAll('[data-msg-approve]').forEach(b => b.onclick = async () => {
+        await api('/admin/messages/' + b.dataset.msgApprove + '/approve', { method: 'POST', body: '{}', admin: true });
+        log('Approved booking request'); loadAdmin();
+      });
+      document.querySelectorAll('[data-msg-decline]').forEach(b => b.onclick = async () => {
+        await api('/admin/messages/' + b.dataset.msgDecline + '/decline', { method: 'POST', body: '{}', admin: true });
+        log('Declined booking request'); loadAdmin();
+      });
+
       const list = await api('/admin/properties?status=pending_review', { admin: true });
       document.getElementById('adminListings').innerHTML = list.properties.map(p => `
         <div class="card row">
@@ -657,7 +688,8 @@
       document.getElementById('adminBookings').innerHTML = bk.bookings.slice(0, 10).map(b => {
         const x = bookingFeeLines(b);
         return `<div class="card">${b.propertyTitle || b.propertyId} · ${b.guestName} · ${b.status}<br>
-          Guest ${x.total} ETB · Host ${x.host} ETB · Platform fee ${x.fee} ETB</div>`;
+          Guest ${x.total} ETB · Host ${x.host} ETB · Platform fee ${x.fee} ETB
+          ${b.guestPhone ? `<br>Phone ${b.guestPhone}` : ''}</div>`;
       }).join('');
     }
 

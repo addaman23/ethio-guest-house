@@ -40,7 +40,7 @@ Opens 3 windows:
 
 ### 2. Host approves
 
-1. Sign out → sign in as **Host** (`+251911000002`, OTP `123456`)
+1. Sign out → sign in as **Host** (`+251988013094`, OTP `123456`)
 2. Open **Inbox** (reservations)
 3. **Approve** the pending request
 4. Optional: **Mark paid on arrival** after guest checks in
@@ -92,5 +92,5 @@ flutter run
 | Role | Phone | OTP |
 |------|-------|-----|
 | Guest | +251911000001 | 123456 |
-| Host | +251911000002 | 123456 |
+| Host | +251988013094 | 123456 |
 | Admin | +251911000099 | 123456 |

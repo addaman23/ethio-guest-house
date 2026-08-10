@@ -57,6 +57,30 @@ export interface BookingRow {
   status: BookingStatus;
   payment_method: PaymentMethod;
   payment_status: PaymentStatus;
+  guest_message: string | null;
+  created_at: string;
+}
+
+export type BookingRequestStatus =
+  | "new"
+  | "contacted"
+  | "approved"
+  | "declined"
+  | "closed";
+
+export interface BookingRequestRow {
+  id: string;
+  property_id: string | null;
+  booking_id: string | null;
+  guest_name: string;
+  guest_phone: string;
+  guest_email: string | null;
+  check_in: string | null;
+  check_out: string | null;
+  guests: number;
+  message: string | null;
+  status: BookingRequestStatus;
+  source: string;
   created_at: string;
 }
 

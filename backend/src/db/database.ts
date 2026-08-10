@@ -84,6 +84,22 @@ CREATE TABLE IF NOT EXISTS site_events (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS booking_requests (
+  id TEXT PRIMARY KEY,
+  property_id TEXT,
+  booking_id TEXT,
+  guest_name TEXT NOT NULL,
+  guest_phone TEXT NOT NULL,
+  guest_email TEXT,
+  check_in TEXT,
+  check_out TEXT,
+  guests INTEGER NOT NULL DEFAULT 1,
+  message TEXT,
+  status TEXT NOT NULL DEFAULT 'new',
+  source TEXT NOT NULL DEFAULT 'website',
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_properties_city ON properties(city);
 CREATE INDEX IF NOT EXISTS idx_properties_host ON properties(host_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_guest ON bookings(guest_id);
@@ -91,6 +107,8 @@ CREATE INDEX IF NOT EXISTS idx_bookings_property ON bookings(property_id);
 CREATE INDEX IF NOT EXISTS idx_site_events_created ON site_events(created_at);
 CREATE INDEX IF NOT EXISTS idx_site_events_type ON site_events(event_type);
 CREATE INDEX IF NOT EXISTS idx_site_events_visitor ON site_events(visitor_id);
+CREATE INDEX IF NOT EXISTS idx_booking_requests_status ON booking_requests(status);
+CREATE INDEX IF NOT EXISTS idx_booking_requests_created ON booking_requests(created_at);
 `;
 
 function migrateSchema(database: Database.Database): void {
@@ -121,6 +139,9 @@ function migrateSchema(database: Database.Database): void {
         host_payout_etb = total_etb - CAST(ROUND(total_etb * 0.10) AS INTEGER)
       WHERE subtotal_etb = 0 OR subtotal_etb IS NULL
     `);
+  }
+  if (!bookingCols.some((c) => c.name === "guest_message")) {
+    database.exec("ALTER TABLE bookings ADD COLUMN guest_message TEXT");
   }
 }
 

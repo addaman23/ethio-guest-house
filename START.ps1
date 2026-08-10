@@ -40,5 +40,5 @@ Write-Host "  Admin:         http://localhost:8081  (uses X-Admin-Key automatica
 Write-Host "`nDemo flow:"
 Write-Host "  1. Open website > Browse guest houses > open a stay (videos on property page)"
 Write-Host "  2. Demo (/demo) or Mobile > Guest > book a stay"
-Write-Host "  3. Host (+251911000002) > approve booking; add YouTube tour videos on Host tab"
+Write-Host "  3. Host (+251988013094) > approve booking; add YouTube tour videos on Host tab"
 Write-Host "  4. Admin > approve pending listings (prop_3)"

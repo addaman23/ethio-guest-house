@@ -7,21 +7,27 @@ import { HttpError } from "../middleware/errorHandler";
 import type { BookingRow, PropertyRow, UserRow } from "../types";
 import { newId, nightsBetween } from "../utils/ids";
 import { calculateBookingPricing } from "../utils/bookingPricing";
+import { syncBookingToRequestInbox } from "../utils/bookingRequests";
 
 const router = Router();
 
 function enrichBooking(row: BookingRow) {
   const db = getDb();
   const prop = db
-    .prepare("SELECT title FROM properties WHERE id = ?")
-    .get(row.property_id) as { title: string } | undefined;
+    .prepare("SELECT title, city FROM properties WHERE id = ?")
+    .get(row.property_id) as { title: string; city: string } | undefined;
   const guest = db
-    .prepare("SELECT name FROM users WHERE id = ?")
-    .get(row.guest_id) as { name: string } | undefined;
+    .prepare("SELECT name, phone, guest_country FROM users WHERE id = ?")
+    .get(row.guest_id) as
+    | { name: string; phone: string; guest_country: string | null }
+    | undefined;
 
   return bookingToJson(row, {
     propertyTitle: prop?.title,
+    propertyCity: prop?.city,
     guestName: guest?.name,
+    guestPhone: guest?.phone,
+    guestCountry: guest?.guest_country,
   });
 }
 
@@ -49,6 +55,7 @@ router.post("/", (req, res, next) => {
         checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
         checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
         guests: z.number().int().min(1).max(20),
+        message: z.string().max(1000).optional(),
       })
       .parse(req.body);
 
@@ -71,14 +78,15 @@ router.post("/", (req, res, next) => {
 
     const id = newId("bk");
     const pricing = calculateBookingPricing(property.nightly_rate_etb, nights);
+    const guestMessage = body.message?.trim() || null;
 
     getDb()
       .prepare(
         `INSERT INTO bookings (
           id, property_id, guest_id, check_in, check_out, guests,
           total_etb, subtotal_etb, platform_fee_etb, host_payout_etb,
-          status, payment_method, payment_status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_approval', 'pay_on_arrival', 'unpaid')`
+          status, payment_method, payment_status, guest_message
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_approval', 'pay_on_arrival', 'unpaid', ?)`
       )
       .run(
         id,
@@ -90,12 +98,15 @@ router.post("/", (req, res, next) => {
         pricing.totalEtb,
         pricing.subtotalEtb,
         pricing.platformFeeEtb,
-        pricing.hostPayoutEtb
+        pricing.hostPayoutEtb,
+        guestMessage
       );
 
     const row = getDb()
       .prepare("SELECT * FROM bookings WHERE id = ?")
       .get(id) as BookingRow;
+
+    syncBookingToRequestInbox(row);
 
     res.status(201).json({ booking: enrichBooking(row) });
   } catch (e) {

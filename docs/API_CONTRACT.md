@@ -54,6 +54,13 @@ Production: `https://ethioguesthouses.com/v1` (same host as the public website u
 - `POST /admin/properties/:id/approve`
 - `POST /admin/properties/:id/suspend`
 - `GET /admin/bookings`
+- `GET /admin/messages` — booking request inbox (new/contacted)
+- `POST /admin/messages/:id/contacted|approve|decline`
+- `POST /admin/bookings/:id/approve|decline`
+
+## Public booking requests
+
+- `POST /booking-requests` — website form: name, phone, email, dates, message → admin inbox
 
 ## Booking JSON example
 

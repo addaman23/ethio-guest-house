@@ -43,7 +43,7 @@
       box-shadow: 0 8px 24px rgba(12,46,36,.08);
     }
     .row { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
-    input, button {
+    input, button, select {
       padding: .55rem .8rem;
       border-radius: 10px;
       border: 1px solid #c9d5ce;
@@ -56,6 +56,8 @@
       cursor: pointer;
       font-weight: 700;
     }
+    button.secondary { background: #fff; color: var(--forest); border: 1px solid var(--forest); }
+    button.danger { background: #8b2e2e; }
     .stat-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -73,6 +75,39 @@
     .muted { color: var(--muted); font-size: .9rem; }
     .hidden { display: none; }
     .error { color: #a33; }
+    .msg {
+      border: 1px solid #d7e3dc;
+      border-radius: 14px;
+      padding: 1rem;
+      margin-top: .85rem;
+      background: #fbfdfc;
+    }
+    .msg.new { border-color: #d4893a; box-shadow: inset 3px 0 0 #d4893a; }
+    .msg h3 { margin: 0 0 .35rem; font-family: Syne, sans-serif; font-size: 1.05rem; }
+    .badge {
+      display: inline-block;
+      padding: .15rem .5rem;
+      border-radius: 999px;
+      font-size: .75rem;
+      font-weight: 700;
+      background: #eef5f1;
+      margin-left: .35rem;
+    }
+    .badge.new { background: #fff1dc; }
+    .actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
+    .actions a {
+      display: inline-flex;
+      align-items: center;
+      padding: .45rem .7rem;
+      border-radius: 999px;
+      background: #eef5f1;
+      color: var(--forest);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: .85rem;
+    }
+    .tabs { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .5rem; }
+    .tabs button.active { background: var(--ochre); color: #1a1208; }
   </style>
 </head>
 <body>
@@ -90,7 +125,7 @@
       <p class="muted">Use your admin API key (same as <code>ADMIN_API_KEY</code> in <code>.env</code>). Default local key: <code>dev-admin-key</code>.</p>
       <div class="row">
         <input id="adminKey" type="password" placeholder="Admin API key" style="min-width:240px" />
-        <button type="button" id="btnLogin">Open analytics</button>
+        <button type="button" id="btnLogin">Open dashboard</button>
       </div>
       <p id="loginError" class="error"></p>
     </section>
@@ -98,10 +133,42 @@
     <section id="dash" class="hidden">
       <div class="card row" style="justify-content:space-between">
         <div>
-          <h2 style="margin:0">Website analytics</h2>
-          <p class="muted" style="margin:.35rem 0 0">Last 30 days · Addis Ababa guest house site</p>
+          <h2 style="margin:0">Booking request messages</h2>
+          <p class="muted" style="margin:.35rem 0 0">See guest requests, contact them, then approve or decline.</p>
         </div>
         <button type="button" id="btnRefresh">Refresh</button>
+      </div>
+
+      <div class="card">
+        <div class="stat-grid" id="inboxStats"></div>
+      </div>
+
+      <div class="card">
+        <div class="tabs">
+          <button type="button" class="active" data-filter="open">Open requests</button>
+          <button type="button" data-filter="new">New only</button>
+          <button type="button" data-filter="all">All statuses</button>
+        </div>
+        <div id="messages"></div>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:0">Manage admins</h2>
+        <p class="muted">Give another person admin access with their phone number. They can use the same owner dashboard with the shared admin key, or sign in with OTP as an admin user.</p>
+        <div class="row" style="margin:0.75rem 0">
+          <input id="adminName" placeholder="Name (optional)" />
+          <input id="adminPhone" placeholder="Phone e.g. 0988013094" style="min-width:200px" />
+          <button type="button" id="btnGrantAdmin">Make admin</button>
+        </div>
+        <p id="adminManageStatus" class="muted"></p>
+        <div id="adminsList"></div>
+      </div>
+
+      <div class="card row" style="justify-content:space-between">
+        <div>
+          <h2 style="margin:0">Website analytics</h2>
+          <p class="muted" style="margin:.35rem 0 0">Last 30 days</p>
+        </div>
       </div>
 
       <div class="card">
@@ -111,7 +178,6 @@
 
       <div class="card">
         <h3>Contact taps</h3>
-        <p class="muted">Counts when visitors tap Call / WhatsApp / Viber / Email on the site.</p>
         <div class="stat-grid" id="contacts"></div>
       </div>
 
@@ -122,38 +188,30 @@
           <tbody id="topPages"></tbody>
         </table>
       </div>
-
-      <div class="card">
-        <h3>Last 7 days</h3>
-        <table>
-          <thead><tr><th>Day</th><th>Views</th><th>Contact taps</th></tr></thead>
-          <tbody id="days"></tbody>
-        </table>
-      </div>
-
-      <div class="card">
-        <h3>Recent activity</h3>
-        <table>
-          <thead><tr><th>When</th><th>Type</th><th>Detail</th></tr></thead>
-          <tbody id="recent"></tbody>
-        </table>
-      </div>
     </section>
   </main>
   <script>
     const API = '/v1';
     const keyInput = document.getElementById('adminKey');
     keyInput.value = localStorage.getItem('egh_admin_key') || 'dev-admin-key';
+    let filter = 'open';
 
-    async function api(path) {
+    async function api(path, opts = {}) {
       const key = keyInput.value.trim();
-      const res = await fetch(API + path, { headers: { 'X-Admin-Key': key } });
+      const res = await fetch(API + path, {
+        ...opts,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Key': key,
+          ...(opts.headers || {}),
+        },
+      });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || res.statusText);
       return data;
     }
 
-    function fillStats(a) {
+    function fillAnalytics(a) {
       document.getElementById('stats').innerHTML = [
         ['Page views', a.pageViews],
         ['Unique visitors', a.uniqueVisitors],
@@ -168,33 +226,170 @@
       ].map(([label, v]) => `<div class="stat"><strong>${v}</strong><span>${label}</span></div>`).join('');
 
       document.getElementById('note').textContent = a.note || '';
-
       document.getElementById('topPages').innerHTML = (a.topPages || []).map(p =>
         `<tr><td>${p.name || '/'}</td><td>${p.c}</td></tr>`
-      ).join('') || '<tr><td colspan="2" class="muted">No views yet — open the public site first.</td></tr>';
+      ).join('') || '<tr><td colspan="2" class="muted">No views yet</td></tr>';
+    }
 
-      document.getElementById('days').innerHTML = (a.last7Days || []).map(d =>
-        `<tr><td>${d.day}</td><td>${d.views}</td><td>${d.contacts}</td></tr>`
-      ).join('') || '<tr><td colspan="3" class="muted">No data yet</td></tr>';
+    function renderMessages(messages, pendingCount) {
+      document.getElementById('inboxStats').innerHTML = [
+        ['Open messages', messages.filter(m => m.status === 'new' || m.status === 'contacted').length],
+        ['New requests', pendingCount],
+      ].map(([label, v]) => `<div class="stat"><strong>${v}</strong><span>${label}</span></div>`).join('');
 
-      document.getElementById('recent').innerHTML = (a.recent || []).map(r =>
-        `<tr><td>${r.at}</td><td>${r.type}</td><td>${r.channel || r.path || '—'}</td></tr>`
-      ).join('') || '<tr><td colspan="3" class="muted">No events yet</td></tr>';
+      const list = document.getElementById('messages');
+      if (!messages.length) {
+        list.innerHTML = '<p class="muted">No booking request messages yet. When a guest submits a request on a stay page, it appears here.</p>';
+        return;
+      }
+
+      list.innerHTML = messages.map(m => {
+        const dates = [m.checkIn, m.checkOut].filter(Boolean).join(' → ') || 'Dates not set';
+        const body = m.message ? `<p>${escapeHtml(m.message)}</p>` : '<p class="muted">No extra message</p>';
+        return `<article class="msg ${m.status}" data-id="${m.id}">
+          <h3>${escapeHtml(m.guestName)}
+            <span class="badge ${m.status}">${m.status}</span>
+            <span class="badge">${escapeHtml(m.source || 'website')}</span>
+          </h3>
+          <p class="muted">${escapeHtml(m.propertyTitle || 'General inquiry')}${m.propertyCity ? ' · ' + escapeHtml(m.propertyCity) : ''}</p>
+          <p><strong>${dates}</strong> · ${m.guests || 1} guest(s)</p>
+          <p>Phone: <strong>${escapeHtml(m.guestPhone)}</strong>${m.guestEmail ? ' · Email: <strong>' + escapeHtml(m.guestEmail) + '</strong>' : ''}</p>
+          ${body}
+          <p class="muted">Received ${escapeHtml(m.createdAt)}</p>
+          <div class="actions">
+            ${m.contact?.whatsapp ? `<a href="${m.contact.whatsapp}" target="_blank" rel="noopener">WhatsApp guest</a>` : ''}
+            ${m.contact?.viber ? `<a href="${m.contact.viber}">Viber</a>` : ''}
+            ${m.contact?.phone ? `<a href="${m.contact.phone}">Call</a>` : ''}
+            ${m.contact?.email ? `<a href="${m.contact.email}">Email</a>` : ''}
+          </div>
+          <div class="actions">
+            ${m.status === 'new' ? `<button type="button" class="secondary" data-act="contacted">Mark contacted</button>` : ''}
+            ${m.status === 'new' || m.status === 'contacted' ? `
+              <button type="button" data-act="approve">Approve request</button>
+              <button type="button" class="danger" data-act="decline">Decline</button>` : ''}
+          </div>
+        </article>`;
+      }).join('');
+
+      list.querySelectorAll('[data-act]').forEach(btn => {
+        btn.onclick = async () => {
+          const id = btn.closest('.msg').dataset.id;
+          const act = btn.dataset.act;
+          try {
+            await api('/admin/messages/' + id + '/' + act, { method: 'POST', body: '{}' });
+            await loadMessages();
+          } catch (e) {
+            alert(e.message);
+          }
+        };
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    async function loadMessages() {
+      const q = filter === 'new' ? '?status=new' : filter === 'all' ? '?status=' : '';
+      // open = default API (new + contacted); all needs both - fetch without filter then show all via status=
+      let data;
+      if (filter === 'all') {
+        // fetch open + closed-ish by requesting each common status is heavy; use empty means open only.
+        // For "all", get new, contacted, approved, declined.
+        const parts = await Promise.all(
+          ['new', 'contacted', 'approved', 'declined'].map(s => api('/admin/messages?status=' + s))
+        );
+        const messages = parts.flatMap(p => p.messages || []);
+        messages.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+        data = { messages, pendingCount: messages.filter(m => m.status === 'new').length };
+      } else if (filter === 'new') {
+        data = await api('/admin/messages?status=new');
+      } else {
+        data = await api('/admin/messages');
+      }
+      renderMessages(data.messages || [], data.pendingCount || 0);
+    }
+
+    async function loadAdmins() {
+      const data = await api('/admin/admins');
+      const list = document.getElementById('adminsList');
+      if (!(data.admins || []).length) {
+        list.innerHTML = '<p class="muted">No admin users yet. Add one below, or use the admin API key.</p>';
+        return;
+      }
+      list.innerHTML = data.admins.map(a => `
+        <div class="msg" style="margin-top:0.6rem">
+          <strong>${escapeHtml(a.name)}</strong> · ${escapeHtml(a.phone)}
+          <div class="actions">
+            <button type="button" class="danger" data-revoke="${escapeHtml(a.phone)}">Remove admin</button>
+          </div>
+        </div>
+      `).join('');
+      list.querySelectorAll('[data-revoke]').forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm('Remove admin access for ' + btn.dataset.revoke + '?')) return;
+          try {
+            await api('/admin/admins/revoke', {
+              method: 'POST',
+              body: JSON.stringify({ phone: btn.dataset.revoke }),
+            });
+            document.getElementById('adminManageStatus').textContent = 'Admin access removed.';
+            await loadAdmins();
+          } catch (e) {
+            alert(e.message);
+          }
+        };
+      });
     }
 
     async function load() {
       const err = document.getElementById('loginError');
       err.textContent = '';
       try {
-        const data = await api('/admin/analytics?days=30');
+        const analytics = await api('/admin/analytics?days=30');
         localStorage.setItem('egh_admin_key', keyInput.value.trim());
         document.getElementById('loginCard').classList.add('hidden');
         document.getElementById('dash').classList.remove('hidden');
-        fillStats(data.analytics);
+        fillAnalytics(analytics.analytics);
+        await loadMessages();
+        await loadAdmins();
       } catch (e) {
         err.textContent = e.message || 'Login failed';
       }
     }
+
+    document.getElementById('btnGrantAdmin').onclick = async () => {
+      const status = document.getElementById('adminManageStatus');
+      status.textContent = 'Saving…';
+      try {
+        const data = await api('/admin/admins/grant', {
+          method: 'POST',
+          body: JSON.stringify({
+            phone: document.getElementById('adminPhone').value.trim(),
+            name: document.getElementById('adminName').value.trim() || undefined,
+          }),
+        });
+        status.textContent = data.message || 'Admin added.';
+        document.getElementById('adminPhone').value = '';
+        document.getElementById('adminName').value = '';
+        await loadAdmins();
+      } catch (e) {
+        status.textContent = e.message || 'Failed';
+      }
+    };
+
+    document.querySelectorAll('.tabs button').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filter = btn.dataset.filter;
+        loadMessages().catch(e => alert(e.message));
+      };
+    });
 
     document.getElementById('btnLogin').onclick = load;
     document.getElementById('btnRefresh').onclick = load;

@@ -228,11 +228,28 @@ export function stayPage(row: PropertyRow): string {
         <p class="stay-desc">${escapeHtml(p.description)}</p>
         <ul class="amenity-list">${amenities}</ul>
         <div class="hero-actions" style="margin-top:1rem">
-          <a class="btn btn-primary" href="#contact">Ask about this stay</a>
-          <a class="btn btn-ghost" style="border-color:rgba(12,46,36,0.25);color:var(--forest)" href="/demo">Request booking</a>
+          <a class="btn btn-primary" href="#request-stay">Request this stay</a>
+          <a class="btn btn-ghost" style="border-color:rgba(12,46,36,0.25);color:var(--forest)" href="#contact">Contact us</a>
         </div>
         <p class="fine-print">Host approval booking · Prices from $50 USD</p>
       </div>
+    </div>
+  </section>
+  <section class="section" id="request-stay">
+    <div class="shell request-panel">
+      <h2 class="section-title">Send a booking request</h2>
+      <p class="section-lead">Our admin team will see your message, contact you, and approve if the stay is available.</p>
+      <form class="request-form" data-booking-request data-property-id="${escapeHtml(p.id)}">
+        <label>Full name<input name="guestName" required minlength="2" placeholder="Your name" /></label>
+        <label>Phone / WhatsApp<input name="guestPhone" required placeholder="+2519… or 09…" /></label>
+        <label>Email<input name="guestEmail" type="email" placeholder="you@email.com" /></label>
+        <label>Check-in<input name="checkIn" type="date" /></label>
+        <label>Check-out<input name="checkOut" type="date" /></label>
+        <label>Guests<input name="guests" type="number" min="1" max="${p.maxGuests}" value="2" /></label>
+        <label class="full">Message<textarea name="message" rows="3" placeholder="Tell us about your trip…"></textarea></label>
+        <button class="btn btn-primary" type="submit">Send request to admin</button>
+        <p class="request-status muted" aria-live="polite"></p>
+      </form>
     </div>
   </section>
   ${videoBlock(p.videos, p.title)}

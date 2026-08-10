@@ -11,6 +11,7 @@ import hostRoutes from "./routes/host";
 import metaRoutes from "./routes/meta";
 import propertiesRoutes from "./routes/properties";
 import analyticsRoutes from "./routes/analytics";
+import bookingRequestsRoutes from "./routes/bookingRequests";
 import webRoutes from "./web/routes";
 
 export function createApp() {
@@ -54,6 +55,7 @@ export function createApp() {
   v1.use("/auth", authRoutes);
   v1.use("/meta", metaRoutes);
   v1.use("/analytics", analyticsRoutes);
+  v1.use("/booking-requests", bookingRequestsRoutes);
   v1.use("/properties", propertiesRoutes);
   v1.use("/bookings", bookingsRoutes);
   v1.use("/host", hostRoutes);

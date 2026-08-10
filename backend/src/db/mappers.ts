@@ -64,7 +64,13 @@ export function propertyToJson(row: PropertyRow) {
 
 export function bookingToJson(
   row: BookingRow,
-  extras?: { propertyTitle?: string; guestName?: string }
+  extras?: {
+    propertyTitle?: string;
+    propertyCity?: string;
+    guestName?: string;
+    guestPhone?: string;
+    guestCountry?: string | null;
+  }
 ) {
   const subtotal =
     row.subtotal_etb > 0 ? row.subtotal_etb : row.total_etb;
@@ -75,12 +81,19 @@ export function bookingToJson(
   const hostPayout =
     row.host_payout_etb > 0 ? row.host_payout_etb : subtotal - platformFee;
 
+  const phone = extras?.guestPhone;
+  const phoneDigits = phone ? phone.replace(/[^\d]/g, "") : "";
+
   return {
     id: row.id,
     propertyId: row.property_id,
     propertyTitle: extras?.propertyTitle,
+    propertyCity: extras?.propertyCity,
     guestId: row.guest_id,
     guestName: extras?.guestName,
+    guestPhone: extras?.guestPhone,
+    guestCountry: extras?.guestCountry ?? null,
+    guestMessage: row.guest_message ?? null,
     checkIn: row.check_in,
     checkOut: row.check_out,
     guests: row.guests,
@@ -93,5 +106,16 @@ export function bookingToJson(
     paymentMethod: row.payment_method,
     paymentStatus: row.payment_status,
     createdAt: row.created_at,
+    contact: phone
+      ? {
+          whatsapp: phoneDigits
+            ? `https://wa.me/${phoneDigits}?text=${encodeURIComponent(
+                `Hello ${extras?.guestName ?? ""}, regarding your Ethio Guest Houses booking.`
+              )}`
+            : null,
+          phone: `tel:${phone.replace(/\s/g, "")}`,
+          viber: phoneDigits ? `viber://chat?number=%2B${phoneDigits}` : null,
+        }
+      : null,
   };
 }

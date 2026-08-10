@@ -24,7 +24,7 @@ export function seedDatabase(): void {
 
   insertUser.run({
     id: "host_1",
-    phone: "+251911000002",
+    phone: "+251988013094",
     name: "Demo Host",
     roles: serializeRoles(["guest", "host"]),
     host_verified: 1,
