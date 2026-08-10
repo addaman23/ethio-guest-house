@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+**/node_modules/
+
+# Environment & secrets
+.env
+backend/.env
+**/.env
+!.env.example
+!backend/.env.example
+!.env.production.example
+!backend/.env.production.example
+
+# Local data & uploads
+backend/data/
+backend/uploads/
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+
+# Build / Flutter
+**/build/
+**/.dart_tool/
+**/.packages
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+mobile/.dart_tool/
+admin/.dart_tool/
+mobile/build/
+admin/build/
+backend/dist/
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+
+# Misc
+coverage/
+.turbo/
+*.tmp

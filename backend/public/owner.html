@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Owner dashboard — Ethio Guest Houses</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --forest: #0c2e24;
+      --paper: #f3f7f4;
+      --ochre: #d4893a;
+      --ink: #12201b;
+      --muted: #4d635a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Manrope, system-ui, sans-serif;
+      background: radial-gradient(900px 400px at 0% 0%, rgba(31,107,82,.12), transparent), var(--paper);
+      color: var(--ink);
+    }
+    header {
+      background: var(--forest);
+      color: #fff;
+      padding: 1.1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    header h1 { margin: 0; font-family: Syne, sans-serif; font-size: 1.25rem; }
+    header a { color: #cfe8dc; }
+    main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 1.1rem 1.2rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 8px 24px rgba(12,46,36,.08);
+    }
+    .row { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+    input, button {
+      padding: .55rem .8rem;
+      border-radius: 10px;
+      border: 1px solid #c9d5ce;
+      font: inherit;
+    }
+    button {
+      background: var(--forest);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: .75rem;
+    }
+    .stat {
+      background: #eef5f1;
+      border-radius: 12px;
+      padding: .9rem;
+    }
+    .stat strong { display: block; font-size: 1.45rem; font-family: Syne, sans-serif; }
+    .stat span { color: var(--muted); font-size: .85rem; }
+    table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+    th, td { text-align: left; padding: .45rem 0; border-bottom: 1px solid #e4ece7; }
+    .muted { color: var(--muted); font-size: .9rem; }
+    .hidden { display: none; }
+    .error { color: #a33; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Owner dashboard</h1>
+    <div>
+      <a href="/">View website</a>
+      ·
+      <a href="/demo">Operator demo</a>
+    </div>
+  </header>
+  <main>
+    <section class="card" id="loginCard">
+      <h2>Sign in as owner / admin</h2>
+      <p class="muted">Use your admin API key (same as <code>ADMIN_API_KEY</code> in <code>.env</code>). Default local key: <code>dev-admin-key</code>.</p>
+      <div class="row">
+        <input id="adminKey" type="password" placeholder="Admin API key" style="min-width:240px" />
+        <button type="button" id="btnLogin">Open analytics</button>
+      </div>
+      <p id="loginError" class="error"></p>
+    </section>
+
+    <section id="dash" class="hidden">
+      <div class="card row" style="justify-content:space-between">
+        <div>
+          <h2 style="margin:0">Website analytics</h2>
+          <p class="muted" style="margin:.35rem 0 0">Last 30 days · Addis Ababa guest house site</p>
+        </div>
+        <button type="button" id="btnRefresh">Refresh</button>
+      </div>
+
+      <div class="card">
+        <div class="stat-grid" id="stats"></div>
+        <p class="muted" id="note" style="margin-top:1rem"></p>
+      </div>
+
+      <div class="card">
+        <h3>Contact taps</h3>
+        <p class="muted">Counts when visitors tap Call / WhatsApp / Viber / Email on the site.</p>
+        <div class="stat-grid" id="contacts"></div>
+      </div>
+
+      <div class="card">
+        <h3>Top pages</h3>
+        <table>
+          <thead><tr><th>Page</th><th>Views</th></tr></thead>
+          <tbody id="topPages"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>Last 7 days</h3>
+        <table>
+          <thead><tr><th>Day</th><th>Views</th><th>Contact taps</th></tr></thead>
+          <tbody id="days"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>Recent activity</h3>
+        <table>
+          <thead><tr><th>When</th><th>Type</th><th>Detail</th></tr></thead>
+          <tbody id="recent"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <script>
+    const API = '/v1';
+    const keyInput = document.getElementById('adminKey');
+    keyInput.value = localStorage.getItem('egh_admin_key') || 'dev-admin-key';
+
+    async function api(path) {
+      const key = keyInput.value.trim();
+      const res = await fetch(API + path, { headers: { 'X-Admin-Key': key } });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      return data;
+    }
+
+    function fillStats(a) {
+      document.getElementById('stats').innerHTML = [
+        ['Page views', a.pageViews],
+        ['Unique visitors', a.uniqueVisitors],
+        ['Contact taps', a.contactClicks],
+      ].map(([label, v]) => `<div class="stat"><strong>${v}</strong><span>${label}</span></div>`).join('');
+
+      document.getElementById('contacts').innerHTML = [
+        ['Phone / call taps', a.phoneClicks],
+        ['WhatsApp', a.whatsappClicks],
+        ['Viber', a.viberClicks],
+        ['Email', a.emailClicks],
+      ].map(([label, v]) => `<div class="stat"><strong>${v}</strong><span>${label}</span></div>`).join('');
+
+      document.getElementById('note').textContent = a.note || '';
+
+      document.getElementById('topPages').innerHTML = (a.topPages || []).map(p =>
+        `<tr><td>${p.name || '/'}</td><td>${p.c}</td></tr>`
+      ).join('') || '<tr><td colspan="2" class="muted">No views yet — open the public site first.</td></tr>';
+
+      document.getElementById('days').innerHTML = (a.last7Days || []).map(d =>
+        `<tr><td>${d.day}</td><td>${d.views}</td><td>${d.contacts}</td></tr>`
+      ).join('') || '<tr><td colspan="3" class="muted">No data yet</td></tr>';
+
+      document.getElementById('recent').innerHTML = (a.recent || []).map(r =>
+        `<tr><td>${r.at}</td><td>${r.type}</td><td>${r.channel || r.path || '—'}</td></tr>`
+      ).join('') || '<tr><td colspan="3" class="muted">No events yet</td></tr>';
+    }
+
+    async function load() {
+      const err = document.getElementById('loginError');
+      err.textContent = '';
+      try {
+        const data = await api('/admin/analytics?days=30');
+        localStorage.setItem('egh_admin_key', keyInput.value.trim());
+        document.getElementById('loginCard').classList.add('hidden');
+        document.getElementById('dash').classList.remove('hidden');
+        fillStats(data.analytics);
+      } catch (e) {
+        err.textContent = e.message || 'Login failed';
+      }
+    }
+
+    document.getElementById('btnLogin').onclick = load;
+    document.getElementById('btnRefresh').onclick = load;
+  </script>
+</body>
+</html>

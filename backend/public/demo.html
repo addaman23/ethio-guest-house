@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ethio Guest House</title>
+  <style>
+    :root { --primary: #0d6e4f; --accent: #f4b400; --bg: #f6f8f7; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; background: var(--bg); color: #1a1a1a; }
+    header { background: var(--primary); color: #fff; padding: 1rem 1.5rem; }
+    header h1 { margin: 0; font-size: 1.25rem; }
+    nav { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
+    nav button { background: rgba(255,255,255,0.15); border: none; color: #fff; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; }
+    nav button.active { background: var(--accent); color: #1a1a1a; font-weight: 600; }
+    main { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
+    .card { background: #fff; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+    input, select, button.btn { padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid #ccc; }
+    button.btn-primary { background: var(--primary); color: #fff; border: none; cursor: pointer; }
+    button.btn-outline { background: #fff; border: 1px solid var(--primary); color: var(--primary); cursor: pointer; }
+    .muted { color: #666; font-size: 0.9rem; }
+    .badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.75rem; background: #eee; }
+    .badge.pending { background: #fff3cd; }
+    .badge.confirmed { background: #d4edda; }
+    #log { font-size: 0.85rem; color: #333; white-space: pre-wrap; max-height: 120px; overflow: auto; }
+    .hidden { display: none; }
+    .gallery { display: flex; gap: 0.5rem; overflow-x: auto; margin: 0.5rem 0; }
+    .gallery-thumb {
+      padding: 0; border: none; background: none; cursor: zoom-in; border-radius: 8px;
+      flex-shrink: 0; position: relative; overflow: hidden;
+    }
+    .gallery-thumb:hover { outline: 2px solid var(--primary); outline-offset: 2px; }
+    .gallery-thumb img { width: 140px; height: 90px; object-fit: cover; border-radius: 8px; display: block; }
+    .gallery-hint { font-size: 0.8rem; color: #888; margin: 0 0 0.35rem; }
+    .host-form label { display: block; font-size: 0.85rem; margin: 0.5rem 0 0.2rem; color: #444; }
+    .host-form input, .host-form textarea, .host-form select { width: 100%; max-width: 100%; margin-bottom: 0.25rem; }
+    #hostListingPreview { margin-top: 1rem; }
+    .lightbox {
+      position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.92);
+      display: flex; align-items: center; justify-content: center; flex-direction: column;
+      padding: 1rem;
+    }
+    .lightbox.hidden { display: none; }
+    .lightbox img {
+      max-width: min(96vw, 1200px); max-height: 82vh; object-fit: contain;
+      border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .lightbox-caption { color: #eee; margin: 0.75rem 0 0; font-size: 0.95rem; text-align: center; }
+    .lightbox-close, .lightbox-nav {
+      position: absolute; border: none; background: rgba(255,255,255,0.15); color: #fff;
+      cursor: pointer; border-radius: 8px; font-size: 1.5rem; line-height: 1;
+    }
+    .lightbox-close { top: 1rem; right: 1rem; width: 44px; height: 44px; }
+    .lightbox-nav { top: 50%; transform: translateY(-50%); width: 48px; height: 64px; }
+    .lightbox-prev { left: 1rem; }
+    .lightbox-next { right: 1rem; }
+    .lightbox-close:hover, .lightbox-nav:hover { background: rgba(255,255,255,0.28); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Ethio Guest House — Operator Demo</h1>
+    <p class="muted" style="color:rgba(255,255,255,0.85);margin:0.25rem 0 0">
+      Public website: <a href="/" style="color:#fff">Ethio Guest Houses</a> · Photos &amp; videos · Pay on arrival (ETB)
+    </p>
+    <nav>
+      <button type="button" data-tab="guest" class="active">Guest</button>
+      <button type="button" data-tab="host">Host</button>
+      <button type="button" data-tab="admin">Admin</button>
+    </nav>
+  </header>
+  <main>
+    <section id="auth" class="card">
+      <h2>Sign in (OTP demo: <code>123456</code>)</h2>
+      <p class="muted">Select your country — dial codes for Ethiopia, Americas, Europe, Africa, Asia &amp; Oceania.</p>
+      <div class="row">
+        <select id="country"><option value="ET">Loading countries…</option></select>
+        <input id="phone" value="+251911000001" placeholder="+251..." />
+        <input id="otp" value="123456" placeholder="OTP" style="width:100px" />
+        <button class="btn-outline" id="btnGuest">Guest (ET)</button>
+        <button class="btn-outline" id="btnGuestUs">Guest (USA)</button>
+        <button class="btn-outline" id="btnHost">Host login</button>
+      </div>
+      <p id="userLine" class="muted">Not signed in</p>
+    </section>
+
+    <section id="panel-guest">
+      <div class="card">
+        <h2>Find a guest house</h2>
+        <div class="intl-banner">Browse photos before you book. Listed prices start from $50 USD / night (ETB paid on arrival). Ethio Guest House charges hosts 10% of rent for connecting guests with guest houses.</div>
+        <div class="row">
+          <select id="cityFilter"><option value="">All cities</option></select>
+          <button class="btn-primary" id="loadProperties">Search</button>
+        </div>
+        <div id="properties"></div>
+      </div>
+      <div class="card">
+        <h2>My bookings</h2>
+        <button class="btn-outline" id="loadMyBookings">Refresh</button>
+        <div id="myBookings"></div>
+      </div>
+    </section>
+
+    <section id="panel-host" class="hidden">
+      <div class="card host-form">
+        <h2>List your guest house</h2>
+        <p class="muted">Upload photos and enter description &amp; price — guests see the preview below when they browse.</p>
+
+        <div id="hostListingPreview" class="card" style="margin-top:0.75rem;background:#fafafa"></div>
+
+        <label for="hostTitle">Guest house name</label>
+        <input id="hostTitle" placeholder="Green View Guest House" />
+
+        <label for="hostCity">City</label>
+        <select id="hostCity">
+          <option>Addis Ababa</option><option>Hawassa</option><option>Bahir Dar</option>
+          <option>Mekelle</option><option>Gondar</option>
+        </select>
+
+        <label for="hostAddress">Address</label>
+        <input id="hostAddress" placeholder="Bole, Addis Ababa" />
+
+        <label for="hostDescription">Description</label>
+        <textarea id="hostDescription" rows="3" placeholder="Quiet rooms near Bole. Breakfast included."></textarea>
+
+        <div class="row">
+          <div style="flex:1">
+            <label for="hostRate">Price per night (USD)</label>
+            <input id="hostRate" type="number" value="50" min="50" step="1" />
+          </div>
+          <div style="flex:1">
+            <label for="hostMaxGuests">Max guests</label>
+            <input id="hostMaxGuests" type="number" value="4" min="1" max="30" />
+          </div>
+        </div>
+
+        <label for="hostPhotoFiles">Photos (required)</label>
+        <input type="file" id="hostPhotoFiles" accept="image/jpeg,image/png,image/webp,image/gif" multiple />
+
+        <button class="btn-primary" id="publishHostListing" style="margin-top:1rem">Publish listing</button>
+        <p id="hostUploadStatus" class="muted"></p>
+      </div>
+      <div class="card">
+        <h2>Update photos on existing listing</h2>
+        <div class="row">
+          <select id="hostPropertySelect"><option value="">Loading…</option></select>
+          <input type="file" id="hostMorePhotos" accept="image/jpeg,image/png,image/webp,image/gif" multiple />
+          <button class="btn-outline" id="uploadHostPhotos">Add photos only</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Add house tour videos</h2>
+        <p class="muted">Paste YouTube/Vimeo links (shown on the public website) or upload MP4/WebM (max 80MB each).</p>
+        <div class="row">
+          <select id="hostVideoPropertySelect"><option value="">Loading…</option></select>
+        </div>
+        <label for="hostVideoUrls">Video URLs (one per line)</label>
+        <textarea id="hostVideoUrls" rows="3" placeholder="https://www.youtube.com/watch?v=..."></textarea>
+        <div class="row" style="margin-top:0.5rem">
+          <button class="btn-primary" id="saveHostVideoUrls">Save video links</button>
+          <input type="file" id="hostVideoFiles" accept="video/mp4,video/webm,video/quicktime" multiple />
+          <button class="btn-outline" id="uploadHostVideos">Upload video files</button>
+        </div>
+        <p id="hostVideoStatus" class="muted"></p>
+      </div>
+      <div class="card">
+        <h2>Reservation inbox</h2>
+        <button class="btn-outline" id="loadHostBookings">Refresh</button>
+        <div id="hostBookings"></div>
+      </div>
+    </section>
+
+    <section id="panel-admin" class="hidden">
+      <div class="card">
+        <h2>Admin dashboard</h2>
+        <p class="muted">Owner analytics (views &amp; contact taps): <a href="/owner">Open owner dashboard</a></p>
+        <div id="adminStats" class="row"></div>
+      </div>
+      <div class="card">
+        <h2>Pending listings</h2>
+        <div id="adminListings"></div>
+      </div>
+      <div class="card">
+        <h2>All bookings</h2>
+        <div id="adminBookings"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Activity</h3>
+      <div id="log"></div>
+    </section>
+  </main>
+
+  <div id="lightbox" class="lightbox hidden" role="dialog" aria-modal="true" aria-label="Photo viewer">
+    <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Close">&times;</button>
+    <button type="button" class="lightbox-nav lightbox-prev" id="lightboxPrev" aria-label="Previous photo">&#8249;</button>
+    <button type="button" class="lightbox-nav lightbox-next" id="lightboxNext" aria-label="Next photo">&#8250;</button>
+    <img id="lightboxImg" alt="" referrerpolicy="no-referrer" />
+    <p id="lightboxCaption" class="lightbox-caption"></p>
+  </div>
+
+  <script>
+    const API = '/v1';
+    let token = localStorage.getItem('token') || '';
+    const log = (m) => { const el = document.getElementById('log'); el.textContent = new Date().toLocaleTimeString() + ' — ' + m + '\n' + el.textContent; };
+
+    async function api(path, opts = {}) {
+      const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+      if (token && !opts.noAuth) headers['Authorization'] = 'Bearer ' + token;
+      if (opts.admin) headers['X-Admin-Key'] = 'dev-admin-key';
+      const res = await fetch(API + path, { ...opts, headers });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      return data;
+    }
+
+    const countryPhones = {
+      ET: '+251911000001', US: '+12025550101', CA: '+14165550102',
+      GB: '+447911123456', DE: '+4915112345678', FR: '+33612345678',
+      AU: '+61412345678', IN: '+919876543210', AE: '+971501234567',
+    };
+    let countryDialByCode = { ET: '+251' };
+
+    async function loadCountryList() {
+      try {
+        const data = await api('/meta/international', { noAuth: true });
+        const sel = document.getElementById('country');
+        sel.innerHTML = data.countries.map(c => {
+          countryDialByCode[c.code] = c.dial;
+          return `<option value="${c.code}">${c.flag} ${c.name} (${c.dial})</option>`;
+        }).join('');
+      } catch {
+        document.getElementById('country').innerHTML =
+          '<option value="ET">🇪🇹 Ethiopia (+251)</option>';
+      }
+    }
+
+    document.getElementById('country').onchange = (e) => {
+      const code = e.target.value;
+      document.getElementById('phone').value = countryPhones[code] || countryDialByCode[code] || '+251';
+    };
+
+    loadCountryList();
+
+    async function login(phone, guestCountry) {
+      await api('/auth/otp/request', { method: 'POST', body: JSON.stringify({ phone }), noAuth: true });
+      const body = { phone, code: document.getElementById('otp').value };
+      if (guestCountry) body.guestCountry = guestCountry;
+      const r = await api('/auth/otp/verify', { method: 'POST', body: JSON.stringify(body), noAuth: true });
+      token = r.token;
+      localStorage.setItem('token', token);
+      document.getElementById('userLine').textContent = 'Signed in: ' + r.user.name + ' (' + r.user.phone + ')';
+      log('Logged in as ' + r.user.name);
+      return r.user;
+    }
+
+    document.getElementById('btnGuest').onclick = () => login('+251911000001', 'ET').then(loadGuest);
+    document.getElementById('btnGuestUs').onclick = () => login('+12025550101', 'US').then(loadGuest);
+    document.getElementById('btnHost').onclick = () => login('+251911000002', 'ET').then(loadHost);
+    document.getElementById('loadProperties').onclick = loadProperties;
+    document.getElementById('loadMyBookings').onclick = loadMyBookings;
+    document.getElementById('loadHostBookings').onclick = loadHostBookings;
+
+    document.querySelectorAll('nav button').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        ['guest','host','admin'].forEach(t => {
+          document.getElementById('panel-' + t).classList.toggle('hidden', t !== btn.dataset.tab);
+        });
+        if (btn.dataset.tab === 'admin') loadAdmin();
+      };
+    });
+
+    const cities = ['Addis Ababa','Hawassa','Bahir Dar','Mekelle','Gondar'];
+    const sel = document.getElementById('cityFilter');
+    cities.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+
+    let lightboxUrls = [];
+    let lightboxIndex = 0;
+    let lightboxTitle = '';
+
+    function fullImageUrl(url) {
+      if (!url) return url;
+      if (url.includes('unsplash.com')) {
+        const u = new URL(url);
+        u.searchParams.set('w', '1600');
+        u.searchParams.set('q', '90');
+        u.searchParams.set('auto', 'format');
+        return u.toString();
+      }
+      return url;
+    }
+
+    function thumbImageUrl(url) {
+      if (!url) return url;
+      if (url.includes('unsplash.com')) {
+        const u = new URL(url);
+        u.searchParams.set('w', '400');
+        u.searchParams.set('q', '80');
+        u.searchParams.set('auto', 'format');
+        u.searchParams.set('fit', 'crop');
+        return u.toString();
+      }
+      return url;
+    }
+
+    function openLightbox(urls, index, title) {
+      lightboxUrls = urls.map(fullImageUrl);
+      lightboxIndex = index;
+      lightboxTitle = title || '';
+      updateLightbox();
+      document.getElementById('lightbox').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    function updateLightbox() {
+      const img = document.getElementById('lightboxImg');
+      img.src = lightboxUrls[lightboxIndex];
+      img.alt = lightboxTitle;
+      const cap = document.getElementById('lightboxCaption');
+      cap.textContent = lightboxTitle + (lightboxUrls.length > 1
+        ? ` — photo ${lightboxIndex + 1} of ${lightboxUrls.length}`
+        : '');
+      document.getElementById('lightboxPrev').style.display = lightboxUrls.length > 1 ? 'block' : 'none';
+      document.getElementById('lightboxNext').style.display = lightboxUrls.length > 1 ? 'block' : 'none';
+    }
+
+    function lightboxStep(delta) {
+      if (lightboxUrls.length < 2) return;
+      lightboxIndex = (lightboxIndex + delta + lightboxUrls.length) % lightboxUrls.length;
+      updateLightbox();
+    }
+
+    document.getElementById('lightboxClose').onclick = closeLightbox;
+    document.getElementById('lightboxPrev').onclick = () => lightboxStep(-1);
+    document.getElementById('lightboxNext').onclick = () => lightboxStep(1);
+    document.getElementById('lightbox').onclick = (e) => { if (e.target.id === 'lightbox') closeLightbox(); };
+    document.addEventListener('keydown', (e) => {
+      if (document.getElementById('lightbox').classList.contains('hidden')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') lightboxStep(-1);
+      if (e.key === 'ArrowRight') lightboxStep(1);
+    });
+
+    function bindGalleryClicks(container) {
+      container.querySelectorAll('.gallery-thumb').forEach(btn => {
+        btn.onclick = () => {
+          const urls = JSON.parse(btn.dataset.urls);
+          const index = parseInt(btn.dataset.index, 10) || 0;
+          openLightbox(urls, index, btn.dataset.title || '');
+        };
+      });
+    }
+
+    async function loadProperties() {
+      const city = sel.value;
+      const q = city ? '?city=' + encodeURIComponent(city) : '';
+      const r = await api('/properties' + q);
+      const el = document.getElementById('properties');
+      el.innerHTML = r.properties.map(p => {
+        const imgs = (p.imageUrls && p.imageUrls.length) ? p.imageUrls : (p.imageUrl ? [p.imageUrl] : []);
+        const hints = (p.priceHints || []).map(h => `${h.amount} ${h.currency}`).join(' · ');
+        return `
+        <div class="card" style="margin-top:0.5rem">
+          <strong>${p.title}</strong> — ${p.city}<br>
+          ${imgs.length ? `
+            <p class="gallery-hint">Click a photo to view full size</p>
+            <div class="gallery">${imgs.map((u, i) => `
+              <button type="button" class="gallery-thumb" data-urls='${JSON.stringify(imgs)}' data-index="${i}" data-title="${p.title.replace(/"/g, '&quot;')}">
+                <img src="${thumbImageUrl(u)}" alt="${p.title} photo ${i + 1}" loading="lazy" referrerpolicy="no-referrer" />
+              </button>`).join('')}
+            </div>` : ''}
+          ${(p.videos && p.videos.length) ? `
+            <p class="gallery-hint">House tour video</p>
+            ${p.videos.slice(0, 1).map(v => v.embedUrl
+              ? `<iframe src="${v.embedUrl}" title="${p.title} video" style="width:100%;aspect-ratio:16/9;border:0;border-radius:8px" allowfullscreen loading="lazy"></iframe>`
+              : `<video controls src="${v.url}" style="width:100%;border-radius:8px"></video>`
+            ).join('')}` : ''}
+          <span class="muted">$${p.nightlyRateUsd ?? '?'} USD / night${hints ? ' · ' + hints : ''} · max ${p.maxGuests} guests</span><br>
+          <a class="btn-outline" style="display:inline-block;margin-top:0.5rem;padding:0.5rem 0.75rem;text-decoration:none" href="/stay/${p.id}">Public page</a>
+          <button class="btn-primary" style="margin-top:0.5rem" data-book="${p.id}">Request booking (2 nights)</button>
+        </div>`;
+      }).join('');
+      bindGalleryClicks(el);
+      el.querySelectorAll('[data-book]').forEach(b => b.onclick = () => bookStay(b.dataset.book));
+    }
+
+    async function bookStay(propertyId) {
+      const inDate = new Date(); inDate.setDate(inDate.getDate() + 7);
+      const outDate = new Date(inDate); outDate.setDate(outDate.getDate() + 2);
+      const fmt = d => d.toISOString().slice(0, 10);
+      await api('/bookings', { method: 'POST', body: JSON.stringify({ propertyId, checkIn: fmt(inDate), checkOut: fmt(outDate), guests: 2 }) });
+      log('Booking requested — awaiting host approval');
+      loadMyBookings();
+    }
+
+    const PLATFORM_RATE = 0.10;
+
+    function bookingFeeLines(b) {
+      const sub = b.subtotalEtb ?? b.totalEtb;
+      const fee = b.platformFeeEtb ?? Math.round(sub * PLATFORM_RATE);
+      const host = b.hostPayoutEtb ?? (sub - fee);
+      return { sub, fee, host, total: b.totalEtb };
+    }
+
+    function guestBookingLine(b) {
+      const x = bookingFeeLines(b);
+      return `${b.checkIn} → ${b.checkOut} · Pay ${x.total} ETB on arrival`;
+    }
+
+    function hostBookingLine(b) {
+      const x = bookingFeeLines(b);
+      return `${b.checkIn} → ${b.checkOut} · Guest pays ${x.total} ETB · You receive ${x.host} ETB (platform fee ${x.fee} ETB)`;
+    }
+
+    async function loadMyBookings() {
+      const r = await api('/bookings/mine');
+      document.getElementById('myBookings').innerHTML = r.bookings.length ? r.bookings.map(b => `
+        <div class="card"><strong>${b.propertyTitle || b.propertyId}</strong>
+        <span class="badge ${b.status}">${b.status}</span><br>
+        ${guestBookingLine(b)}</div>
+      `).join('') : '<p class="muted">No bookings yet.</p>';
+    }
+
+    async function loadHost() {
+      renderHostPreview();
+      await loadHostProperties();
+      await loadHostBookings();
+    }
+
+    let hostPreviewUrls = [];
+
+    function formatUsdHints(usd) {
+      const etb = Math.round(usd * 57);
+      return `$${usd} USD / night · ≈ ${etb} ETB on arrival`;
+    }
+
+    function renderHostPreview() {
+      const title = document.getElementById('hostTitle').value.trim() || 'Your guest house name';
+      const city = document.getElementById('hostCity').value;
+      const desc = document.getElementById('hostDescription').value.trim();
+      const rate = parseInt(document.getElementById('hostRate').value, 10) || 0;
+      const maxG = parseInt(document.getElementById('hostMaxGuests').value, 10) || 4;
+      const hints = rate >= 50 ? formatUsdHints(rate) : 'Enter price in USD (min $50)';
+      const gallery = hostPreviewUrls.length
+        ? `<p class="gallery-hint">Click a photo to view full size</p>
+           <div class="gallery">${hostPreviewUrls.map((url, i) => `
+             <img src="${url}" alt="Preview ${i + 1}" style="width:140px;height:90px;object-fit:cover;border-radius:8px" />
+           `).join('')}</div>`
+        : '<p class="muted">Choose photos below to preview</p>';
+      document.getElementById('hostListingPreview').innerHTML = `
+        <p style="margin:0 0 0.5rem;color:#0d6e4f;font-weight:600">Guest preview</p>
+        <strong>${title} — ${city}</strong><br>
+        ${gallery}
+        <span class="muted">${hints} · max ${maxG} guests</span>
+        ${desc ? `<p style="margin-top:0.5rem">${desc}</p>` : ''}
+      `;
+    }
+
+    ['hostTitle','hostCity','hostAddress','hostDescription','hostRate','hostMaxGuests'].forEach(id => {
+      document.getElementById(id).addEventListener('input', renderHostPreview);
+      document.getElementById(id).addEventListener('change', renderHostPreview);
+    });
+
+    document.getElementById('hostPhotoFiles').onchange = (e) => {
+      hostPreviewUrls.forEach(u => URL.revokeObjectURL(u));
+      hostPreviewUrls = [...e.target.files].map(f => URL.createObjectURL(f));
+      renderHostPreview();
+    };
+
+    document.getElementById('publishHostListing').onclick = async () => {
+      const status = document.getElementById('hostUploadStatus');
+      const files = document.getElementById('hostPhotoFiles').files;
+      const title = document.getElementById('hostTitle').value.trim();
+      const description = document.getElementById('hostDescription').value.trim();
+      const nightlyRateUsd = parseInt(document.getElementById('hostRate').value, 10);
+      if (title.length < 3) { status.textContent = 'Enter a guest house name.'; return; }
+      if (description.length < 10) { status.textContent = 'Enter a description (10+ characters).'; return; }
+      if (!nightlyRateUsd || nightlyRateUsd < 50) { status.textContent = 'Price must be at least $50 USD.'; return; }
+      if (!files.length) { status.textContent = 'Add at least one photo.'; return; }
+      status.textContent = 'Publishing…';
+      const form = new FormData();
+      form.append('title', title);
+      form.append('city', document.getElementById('hostCity').value);
+      form.append('address', document.getElementById('hostAddress').value.trim() || document.getElementById('hostCity').value);
+      form.append('description', description);
+      form.append('nightlyRateUsd', String(nightlyRateUsd));
+      form.append('maxGuests', document.getElementById('hostMaxGuests').value);
+      for (const f of files) form.append('photos', f);
+      try {
+        const res = await fetch(API + '/host/properties/listing', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + token },
+          body: form
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || res.statusText);
+        status.textContent = data.message || 'Listing published! Admin will review before guests can book.';
+        log('Published listing: ' + title);
+        loadHostProperties();
+        document.getElementById('hostPhotoFiles').value = '';
+        hostPreviewUrls = [];
+        renderHostPreview();
+      } catch (e) {
+        status.textContent = e.message;
+      }
+    };
+
+    async function loadHostProperties() {
+      try {
+        const r = await api('/host/properties');
+        const sel = document.getElementById('hostPropertySelect');
+        if (!r.properties.length) {
+          sel.innerHTML = '<option value="">No properties — add one in the mobile app</option>';
+          return;
+        }
+        const opts = r.properties.map(p =>
+          `<option value="${p.id}">${p.title} (${p.imageUrls?.length || 0} photos · ${p.videos?.length || 0} videos)</option>`
+        ).join('');
+        sel.innerHTML = opts;
+        document.getElementById('hostVideoPropertySelect').innerHTML = opts;
+      } catch (e) {
+        document.getElementById('hostPropertySelect').innerHTML =
+          `<option value="">Sign in as host first</option>`;
+        document.getElementById('hostVideoPropertySelect').innerHTML =
+          `<option value="">Sign in as host first</option>`;
+      }
+    }
+
+    document.getElementById('saveHostVideoUrls').onclick = async () => {
+      const propertyId = document.getElementById('hostVideoPropertySelect').value;
+      const status = document.getElementById('hostVideoStatus');
+      const lines = document.getElementById('hostVideoUrls').value
+        .split(/\n/).map(s => s.trim()).filter(Boolean);
+      if (!propertyId) { status.textContent = 'Select a property.'; return; }
+      if (!lines.length) { status.textContent = 'Paste at least one YouTube or Vimeo URL.'; return; }
+      status.textContent = 'Saving…';
+      try {
+        const data = await api('/host/properties/' + propertyId + '/videos', {
+          method: 'POST',
+          body: JSON.stringify({ urls: lines })
+        });
+        status.textContent = data.message || 'Videos saved.';
+        log('Videos linked for ' + propertyId);
+        loadHostProperties();
+      } catch (e) {
+        status.textContent = e.message;
+      }
+    };
+
+    document.getElementById('uploadHostVideos').onclick = async () => {
+      const propertyId = document.getElementById('hostVideoPropertySelect').value;
+      const files = document.getElementById('hostVideoFiles').files;
+      const status = document.getElementById('hostVideoStatus');
+      if (!propertyId) { status.textContent = 'Select a property.'; return; }
+      if (!files.length) { status.textContent = 'Choose one or more video files.'; return; }
+      status.textContent = 'Uploading video…';
+      const form = new FormData();
+      for (const f of files) form.append('videos', f);
+      try {
+        const headers = { Authorization: 'Bearer ' + token };
+        const res = await fetch(API + '/host/properties/' + propertyId + '/videos/upload', {
+          method: 'POST', headers, body: form
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || res.statusText);
+        status.textContent = data.message || `Uploaded ${data.uploaded} video(s).`;
+        log('Videos uploaded for ' + propertyId);
+        loadHostProperties();
+        document.getElementById('hostVideoFiles').value = '';
+      } catch (e) {
+        status.textContent = e.message;
+      }
+    };
+
+    document.getElementById('uploadHostPhotos').onclick = async () => {
+      const propertyId = document.getElementById('hostPropertySelect').value;
+      const files = document.getElementById('hostMorePhotos').files;
+      const status = document.getElementById('hostUploadStatus');
+      if (!propertyId) { status.textContent = 'Select a property.'; return; }
+      if (!files.length) { status.textContent = 'Choose one or more image files.'; return; }
+      status.textContent = 'Uploading…';
+      const form = new FormData();
+      for (const f of files) form.append('photos', f);
+      try {
+        const headers = { Authorization: 'Bearer ' + token };
+        const res = await fetch(API + '/host/properties/' + propertyId + '/photos', {
+          method: 'POST', headers, body: form
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || res.statusText);
+        status.textContent = `Added ${data.uploaded} photo(s).`;
+        log('Photos uploaded for ' + propertyId);
+        loadHostProperties();
+        document.getElementById('hostMorePhotos').value = '';
+      } catch (e) {
+        status.textContent = e.message;
+      }
+    };
+
+    async function loadHostBookings() {
+      const r = await api('/host/bookings');
+      const el = document.getElementById('hostBookings');
+      el.innerHTML = r.bookings.map(b => `
+        <div class="card">
+          <strong>${b.propertyTitle}</strong> — ${b.guestName}<br>
+          ${hostBookingLine(b)}
+          <span class="badge ${b.status}">${b.status}</span>
+          ${b.status === 'pending_approval' ? `
+            <div class="row" style="margin-top:0.5rem">
+              <button class="btn-primary" data-approve="${b.id}">Approve</button>
+              <button class="btn-outline" data-decline="${b.id}">Decline</button>
+            </div>` : ''}
+          ${b.status === 'confirmed' && b.paymentStatus === 'unpaid' ? `
+            <button class="btn-outline" style="margin-top:0.5rem" data-paid="${b.id}">Mark paid on arrival</button>` : ''}
+        </div>
+      `).join('');
+      el.querySelectorAll('[data-approve]').forEach(x => x.onclick = async () => {
+        await api('/host/bookings/' + x.dataset.approve + '/approve', { method: 'POST' });
+        log('Approved booking'); loadHostBookings();
+      });
+      el.querySelectorAll('[data-decline]').forEach(x => x.onclick = async () => {
+        await api('/host/bookings/' + x.dataset.decline + '/decline', { method: 'POST' });
+        log('Declined booking'); loadHostBookings();
+      });
+      el.querySelectorAll('[data-paid]').forEach(x => x.onclick = async () => {
+        await api('/host/bookings/' + x.dataset.paid + '/mark-paid', { method: 'POST' });
+        log('Marked paid'); loadHostBookings();
+      });
+    }
+
+    async function loadAdmin() {
+      const stats = await api('/admin/stats', { admin: true });
+      document.getElementById('adminStats').innerHTML = Object.entries(stats.stats).map(([k,v]) =>
+        `<div class="card" style="min-width:140px"><strong>${v}</strong><br><span class="muted">${k}</span></div>`
+      ).join('');
+      const list = await api('/admin/properties?status=pending_review', { admin: true });
+      document.getElementById('adminListings').innerHTML = list.properties.map(p => `
+        <div class="card row">
+          <div style="flex:1"><strong>${p.title}</strong> — ${p.city} · $${p.nightlyRateUsd ?? '?'} USD</div>
+          <button class="btn-primary" data-approve-prop="${p.id}">Approve live</button>
+        </div>
+      `).join('') || '<p class="muted">No pending listings</p>';
+      document.querySelectorAll('[data-approve-prop]').forEach(b => b.onclick = async () => {
+        await api('/admin/properties/' + b.dataset.approveProp + '/approve', { method: 'POST', admin: true });
+        log('Listing approved'); loadAdmin();
+      });
+      const bk = await api('/admin/bookings', { admin: true });
+      document.getElementById('adminBookings').innerHTML = bk.bookings.slice(0, 10).map(b => {
+        const x = bookingFeeLines(b);
+        return `<div class="card">${b.propertyTitle || b.propertyId} · ${b.guestName} · ${b.status}<br>
+          Guest ${x.total} ETB · Host ${x.host} ETB · Platform fee ${x.fee} ETB</div>`;
+      }).join('');
+    }
+
+    async function loadGuest() {
+      await loadProperties();
+      await loadMyBookings();
+    }
+
+    if (token) {
+      document.getElementById('userLine').textContent = 'Restored session (token in browser)';
+      loadGuest().catch(() => {});
+    }
+  </script>
+</body>
+</html>
