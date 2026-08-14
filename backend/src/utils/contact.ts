@@ -19,10 +19,10 @@ export function getContactInfo() {
     phone,
     whatsapp,
     viber,
-    emailHref: `mailto:${email}?subject=${encodeURIComponent("Ethio Guest Houses inquiry")}`,
+    emailHref: `mailto:${email}?subject=${encodeURIComponent("AddisAbaba Guest Houses inquiry")}`,
     phoneHref: `tel:${phone.replace(/\s/g, "")}`,
     whatsappHref: `https://wa.me/${waDigits}?text=${encodeURIComponent(
-      "Hello Ethio Guest Houses — I am interested in a guest house in Addis Ababa."
+      "Hello AddisAbaba Guest Houses — I am interested in a guest house in Addis Ababa."
     )}`,
     viberHref: `viber://chat?number=%2B${viberDigits}`,
   };
@@ -31,7 +31,7 @@ export function getContactInfo() {
 /** Contact block for public pages (tracked via data-contact-track). */
 export function renderContactSection(opts?: { compact?: boolean }): string {
   const c = getContactInfo();
-  const title = opts?.compact ? "Contact us" : "Contact Ethio Guest Houses";
+  const title = opts?.compact ? "Contact us" : "Contact AddisAbaba Guest Houses";
   const lead = opts?.compact
     ? "Worldwide guests — message us anytime about Addis Ababa stays."
     : "Serving travelers worldwide looking for guest houses in Addis Ababa. Reach us by email, WhatsApp, Viber, or phone.";

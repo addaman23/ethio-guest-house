@@ -3,28 +3,207 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ethio Guest House</title>
+  <title>AddisAbaba Guest Houses</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
-    :root { --primary: #0d6e4f; --accent: #f4b400; --bg: #f6f8f7; }
+    :root {
+      --primary: #1f6b52;
+      --forest: #0c2e24;
+      --forest-deep: #071a14;
+      --accent: #d4893a;
+      --bg: #f3f7f4;
+      --mist: #e4ede8;
+      --ink: #12201b;
+      --muted: #4d635a;
+      --font-display: "Syne", sans-serif;
+      --font-body: "Manrope", sans-serif;
+    }
     * { box-sizing: border-box; }
-    body { font-family: system-ui, sans-serif; margin: 0; background: var(--bg); color: #1a1a1a; }
-    header { background: var(--primary); color: #fff; padding: 1rem 1.5rem; }
-    header h1 { margin: 0; font-size: 1.25rem; }
-    nav { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
-    nav button { background: rgba(255,255,255,0.15); border: none; color: #fff; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; }
-    nav button.active { background: var(--accent); color: #1a1a1a; font-weight: 600; }
-    main { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
-    .card { background: #fff; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-    .row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
-    input, select, button.btn { padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid #ccc; }
-    button.btn-primary { background: var(--primary); color: #fff; border: none; cursor: pointer; }
-    button.btn-outline { background: #fff; border: 1px solid var(--primary); color: var(--primary); cursor: pointer; }
-    .muted { color: #666; font-size: 0.9rem; }
-    .badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.75rem; background: #eee; }
-    .badge.pending { background: #fff3cd; }
-    .badge.confirmed { background: #d4edda; }
-    #log { font-size: 0.85rem; color: #333; white-space: pre-wrap; max-height: 120px; overflow: auto; }
+    body {
+      font-family: var(--font-body);
+      margin: 0;
+      color: var(--ink);
+      line-height: 1.55;
+      background:
+        radial-gradient(1000px 520px at 8% -8%, rgba(31, 107, 82, 0.14), transparent 55%),
+        radial-gradient(800px 420px at 100% 0%, rgba(212, 137, 58, 0.12), transparent 48%),
+        var(--bg);
+    }
+    header {
+      background: linear-gradient(145deg, var(--forest) 0%, var(--forest-deep) 100%);
+      color: #fff;
+      padding: 1.15rem 1.5rem 1.25rem;
+      box-shadow: 0 10px 30px rgba(7, 26, 20, 0.22);
+    }
+    header h1 {
+      margin: 0;
+      font-family: var(--font-body);
+      font-size: clamp(1.35rem, 3.2vw, 1.75rem);
+      font-weight: 800;
+      letter-spacing: -0.015em;
+      line-height: 1.2;
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    }
+    header .muted { color: rgba(255,255,255,0.9) !important; font-size: 1rem; font-weight: 600; }
+    header .brand-link {
+      color: #ffffff !important;
+      font-family: var(--font-body);
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.01em;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+    header .brand-link:hover { color: #ffe6c2 !important; }
+    nav { display: flex; gap: 0.5rem; margin-top: 0.9rem; flex-wrap: wrap; }
+    nav button {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: #fff;
+      padding: 0.55rem 1.05rem;
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 0.92rem;
+      transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+    }
+    nav button:hover { background: rgba(255,255,255,0.2); }
+    nav button.active {
+      background: var(--accent);
+      border-color: transparent;
+      color: var(--forest-deep);
+      transform: translateY(-1px);
+    }
+    main { max-width: 920px; margin: 0 auto; padding: 1.5rem 1.25rem 2.5rem; }
+    .card > h2,
+    .card h2 {
+      font-family: var(--font-body);
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      line-height: 1.25;
+      color: #0a1f19;
+      margin: 0 0 0.35rem;
+    }
+    .card > h3,
+    .card h3 {
+      font-family: var(--font-body);
+      font-size: 1.1rem;
+      font-weight: 750;
+      font-weight: 700;
+      letter-spacing: 0;
+      color: #0a1f19;
+      margin: 0 0 0.45rem;
+    }
+    .card-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
+    .card-title-row h2 { margin: 0; }
+    .section-sub {
+      margin: 0 0 1rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 500;
+      line-height: 1.45;
+    }
+    .section-sub code {
+      font-family: var(--font-body);
+      font-weight: 800;
+      color: var(--forest);
+      background: var(--mist);
+      padding: 0.12rem 0.45rem;
+      border-radius: 0.4rem;
+      font-size: 0.92em;
+    }
+    .card {
+      background: #fff;
+      border-radius: 1rem;
+      padding: 1.25rem 1.3rem 1.35rem;
+      margin-bottom: 1.1rem;
+      border: 1px solid rgba(12, 46, 36, 0.1);
+      box-shadow: 0 8px 24px rgba(12, 46, 36, 0.05);
+    }
+    .row { display: flex; gap: 0.55rem; flex-wrap: wrap; align-items: center; }
+    input, select, textarea, button.btn {
+      padding: 0.6rem 0.8rem;
+      border-radius: 0.75rem;
+      border: 1px solid #c9d5cf;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      color: var(--ink);
+      background: #fff;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(31, 107, 82, 0.15);
+    }
+    button.btn-primary, .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      border-radius: 0.75rem;
+      padding: 0.6rem 0.95rem;
+      font-family: var(--font-body);
+      font-weight: 700;
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+    button.btn-primary:hover, .btn-primary:hover { background: var(--forest); }
+    button.btn-outline, .btn-outline {
+      background: #fff;
+      border: 1.5px solid var(--primary);
+      color: var(--primary);
+      cursor: pointer;
+      border-radius: 0.75rem;
+      padding: 0.55rem 0.9rem;
+      font-family: var(--font-body);
+      font-weight: 700;
+    }
+    button.btn-outline:hover, .btn-outline:hover {
+      background: rgba(31, 107, 82, 0.06);
+    }
+    .muted { color: var(--muted); font-size: 0.9rem; }
+    .badge {
+      display: inline-block;
+      padding: 0.22rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      background: var(--mist);
+      color: var(--forest);
+    }
+    .badge.pending { background: #fff1d6; color: #8a5a12; }
+    .badge.confirmed { background: #d8f3e4; color: #14603f; }
+    #log {
+      font-size: 0.85rem;
+      color: var(--muted);
+      white-space: pre-wrap;
+      max-height: 120px;
+      overflow: auto;
+      font-family: var(--font-body);
+    }
     .hidden { display: none; }
+    .intl-banner {
+      background: linear-gradient(120deg, rgba(31,107,82,0.1), rgba(212,137,58,0.1));
+      border-radius: 0.85rem;
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.85rem;
+      color: var(--forest);
+      font-weight: 600;
+      font-size: 0.92rem;
+    }
     .gallery { display: flex; gap: 0.5rem; overflow-x: auto; margin: 0.5rem 0; }
     .gallery-thumb {
       padding: 0; border: none; background: none; cursor: zoom-in; border-radius: 8px;
@@ -32,8 +211,15 @@
     }
     .gallery-thumb:hover { outline: 2px solid var(--primary); outline-offset: 2px; }
     .gallery-thumb img { width: 140px; height: 90px; object-fit: cover; border-radius: 8px; display: block; }
-    .gallery-hint { font-size: 0.8rem; color: #888; margin: 0 0 0.35rem; }
-    .host-form label { display: block; font-size: 0.85rem; margin: 0.5rem 0 0.2rem; color: #444; }
+    .gallery-hint { font-size: 0.8rem; color: var(--muted); margin: 0 0 0.35rem; }
+    .host-form label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin: 0.55rem 0 0.25rem;
+      color: var(--forest);
+      letter-spacing: 0.01em;
+    }
     .host-form input, .host-form textarea, .host-form select { width: 100%; max-width: 100%; margin-bottom: 0.25rem; }
     #hostListingPreview { margin-top: 1rem; }
     .lightbox {
@@ -56,56 +242,116 @@
     .lightbox-prev { left: 1rem; }
     .lightbox-next { right: 1rem; }
     .lightbox-close:hover, .lightbox-nav:hover { background: rgba(255,255,255,0.28); }
+    .success-popup-overlay {
+      position: fixed; inset: 0; z-index: 2000; background: rgba(7, 26, 20, 0.55);
+      display: flex; align-items: center; justify-content: center; padding: 1.25rem;
+      opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+    }
+    .success-popup-overlay.show { opacity: 1; pointer-events: auto; }
+    .success-popup {
+      width: min(100%, 360px); background: #fff; border-radius: 1.25rem;
+      padding: 1.75rem 1.4rem 1.4rem; text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+      transform: translateY(16px) scale(0.96); transition: transform 0.28s ease;
+    }
+    .success-popup-overlay.show .success-popup { transform: none; }
+    .success-popup-icon {
+      width: 64px; height: 64px; margin: 0 auto 1rem; border-radius: 50%;
+      background: #1f9d57; color: #fff; display: grid; place-items: center;
+      font-size: 2rem; font-weight: 700; line-height: 1;
+      box-shadow: 0 8px 20px rgba(31, 157, 87, 0.35);
+    }
+    .success-popup h3 {
+      margin: 0 0 0.4rem;
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      color: var(--forest);
+    }
+    .success-popup p { margin: 0 0 1.15rem; color: var(--muted); font-size: 0.95rem; }
+    .success-popup button {
+      background: #1f9d57; color: #fff; border: none; border-radius: 999px;
+      padding: 0.7rem 1.3rem; font-weight: 700; cursor: pointer;
+      font-family: var(--font-body);
+    }
+    .guest-cta-box {
+      background: linear-gradient(135deg, rgba(31,107,82,0.1), rgba(212,137,58,0.1));
+      border: 1px solid rgba(12, 46, 36, 0.12);
+      border-radius: 1rem;
+      padding: 1.25rem 1.35rem;
+      margin-bottom: 1rem;
+    }
+    .guest-cta-box .btn-primary {
+      display: inline-block;
+      text-decoration: none;
+      margin-top: 0.75rem;
+      margin-right: 0.5rem;
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1>Ethio Guest House — Operator Demo</h1>
-    <p class="muted" style="color:rgba(255,255,255,0.85);margin:0.25rem 0 0">
-      Public website: <a href="/" style="color:#fff">Ethio Guest Houses</a> · Photos &amp; videos · Pay on arrival (ETB)
+    <h1>AddisAbaba Guest Houses — Operator Demo</h1>
+    <p class="muted" style="margin:0.4rem 0 0">
+      For hosts &amp; admins. Public guests book on
+      <a class="brand-link" href="/">AddisAbaba Guest Houses</a>
+      (no sign-in — website form only).
     </p>
     <nav>
-      <button type="button" data-tab="guest" class="active">Guest</button>
+      <button type="button" data-tab="guest" class="active">Public guests</button>
       <button type="button" data-tab="host">Host</button>
       <button type="button" data-tab="admin">Admin</button>
     </nav>
   </header>
   <main>
-    <section id="auth" class="card">
-      <h2>Sign in (OTP demo: <code>123456</code>)</h2>
-      <p class="muted">Select your country — dial codes for Ethiopia, Americas, Europe, Africa, Asia &amp; Oceania.</p>
-      <div class="row">
+    <section id="auth" class="card hidden">
+      <h2 id="authTitle">Sign in</h2>
+      <p class="section-sub" id="authSub">OTP demo code: <code>123456</code></p>
+      <p class="muted" id="authHint">Host or admin login for this demo console.</p>
+      <div class="row" id="authFields">
         <select id="country"><option value="ET">Loading countries…</option></select>
-        <input id="phone" value="+251911000001" placeholder="+251..." />
+        <input id="phone" value="+251988013094" placeholder="+251..." />
         <input id="otp" value="123456" placeholder="OTP" style="width:100px" />
-        <button class="btn-outline" id="btnGuest">Guest (ET)</button>
-        <button class="btn-outline" id="btnGuestUs">Guest (USA)</button>
-        <button class="btn-outline" id="btnHost">Host login</button>
+        <span id="authGuestActions" class="row hidden">
+          <button class="btn-outline" id="btnGuest">Guest (ET)</button>
+          <button class="btn-outline" id="btnGuestUs">Guest (USA)</button>
+        </span>
+        <span id="authHostActions" class="row hidden">
+          <button class="btn-outline" id="btnHost">Host login</button>
+        </span>
+        <span id="authAdminActions" class="row hidden">
+          <button class="btn-outline" id="btnAdmin">Admin login</button>
+        </span>
       </div>
       <p id="userLine" class="muted">Not signed in</p>
     </section>
 
     <section id="panel-guest">
-      <div class="card">
-        <h2>Find a guest house</h2>
-        <div class="intl-banner">Browse photos before you book. Listed prices start from $50 USD / night (ETB paid on arrival). Ethio Guest House charges hosts 10% of rent for connecting guests with guest houses.</div>
-        <div class="row">
-          <select id="cityFilter"><option value="">All cities</option></select>
-          <button class="btn-primary" id="loadProperties">Search</button>
-        </div>
-        <div id="properties"></div>
+      <div class="guest-cta-box">
+        <h2 style="margin:0 0 0.35rem">Public guests do not sign in</h2>
+        <p class="section-sub" style="margin:0">
+          Real guests open a stay page and fill <strong>Send a booking request</strong>
+          (name, phone, dates, message). No OTP or account needed — the request goes to admin.
+        </p>
+        <a class="btn-primary" href="/guest-houses/city/addis-ababa">Browse guest houses</a>
+        <a class="btn-outline" href="/" style="text-decoration:none;display:inline-block;margin-top:0.75rem">Go to homepage</a>
       </div>
       <div class="card">
-        <h2>My bookings</h2>
-        <button class="btn-outline" id="loadMyBookings">Refresh</button>
-        <div id="myBookings"></div>
+        <h2>What hosts &amp; admins use this demo for</h2>
+        <p class="section-sub">
+          Switch to the <strong>Host</strong> or <strong>Admin</strong> tab above to sign in,
+          publish listings, upload videos, and manage booking requests.
+        </p>
+        <ul style="margin:0;padding-left:1.2rem;color:var(--muted);line-height:1.6">
+          <li><strong>Host</strong> — publish guest houses, photos, YouTube/video tours</li>
+          <li><strong>Admin</strong> — inbox messages, approve stays, analytics</li>
+        </ul>
       </div>
     </section>
 
     <section id="panel-host" class="hidden">
       <div class="card host-form">
         <h2>List your guest house</h2>
-        <p class="muted">Upload photos and enter description &amp; price — guests see the preview below when they browse.</p>
+        <p class="section-sub">Upload photos and set description &amp; price — guests see this on the public website.</p>
 
         <div id="hostListingPreview" class="card" style="margin-top:0.75rem;background:#fafafa"></div>
 
@@ -143,6 +389,7 @@
       </div>
       <div class="card">
         <h2>Update photos on existing listing</h2>
+        <p class="section-sub">Add more photos to a property you already published.</p>
         <div class="row">
           <select id="hostPropertySelect"><option value="">Loading…</option></select>
           <input type="file" id="hostMorePhotos" accept="image/jpeg,image/png,image/webp,image/gif" multiple />
@@ -151,22 +398,28 @@
       </div>
       <div class="card">
         <h2>Add house tour videos</h2>
-        <p class="muted">Paste YouTube/Vimeo links (shown on the public website) or upload MP4/WebM (max 80MB each).</p>
+        <p class="section-sub">Upload video files and/or add optional YouTube (or Vimeo) links. Guests can watch them on the stay page.</p>
         <div class="row">
           <select id="hostVideoPropertySelect"><option value="">Loading…</option></select>
         </div>
-        <label for="hostVideoUrls">Video URLs (one per line)</label>
-        <textarea id="hostVideoUrls" rows="3" placeholder="https://www.youtube.com/watch?v=..."></textarea>
+        <label for="hostVideoFiles">Upload video files</label>
+        <div class="row" style="margin-top:0.25rem">
+          <input type="file" id="hostVideoFiles" accept="video/mp4,video/webm,video/quicktime" multiple />
+          <button class="btn-outline" id="uploadHostVideos">Upload files</button>
+        </div>
+        <label for="hostVideoUrls">YouTube / Vimeo links <span class="muted">(optional)</span></label>
+        <textarea id="hostVideoUrls" rows="3" placeholder="https://www.youtube.com/watch?v=...&#10;One link per line"></textarea>
         <div class="row" style="margin-top:0.5rem">
           <button class="btn-primary" id="saveHostVideoUrls">Save video links</button>
-          <input type="file" id="hostVideoFiles" accept="video/mp4,video/webm,video/quicktime" multiple />
-          <button class="btn-outline" id="uploadHostVideos">Upload video files</button>
         </div>
         <p id="hostVideoStatus" class="muted"></p>
       </div>
       <div class="card">
-        <h2>Reservation inbox</h2>
-        <button class="btn-outline" id="loadHostBookings">Refresh</button>
+        <div class="card-title-row">
+          <h2>Reservation inbox</h2>
+          <button class="btn-outline" id="loadHostBookings">Refresh</button>
+        </div>
+        <p class="section-sub">Approve guest requests and confirm deposit payments.</p>
         <div id="hostBookings"></div>
       </div>
     </section>
@@ -174,20 +427,36 @@
     <section id="panel-admin" class="hidden">
       <div class="card">
         <h2>Admin dashboard</h2>
-        <p class="muted">Owner analytics (views &amp; contact taps): <a href="/owner">Open owner dashboard</a></p>
+        <p class="section-sub">Owner analytics (views &amp; contact taps): <a href="/owner">Open owner dashboard</a></p>
         <div id="adminStats" class="row"></div>
       </div>
       <div class="card">
         <h2>Booking request messages</h2>
-        <p class="muted">Also available at <a href="/owner">/owner</a> dashboard. Contact the guest, then approve or decline.</p>
+        <p class="section-sub">Also available on the <a href="/owner">/owner</a> dashboard. Contact the guest, then approve or decline.</p>
         <div id="adminMessages"></div>
       </div>
       <div class="card">
+        <h2>Hosts</h2>
+        <p class="section-sub">Verify new hosts, or remove a host if they break the rules (listings are suspended).</p>
+        <div id="adminHosts"></div>
+      </div>
+      <div class="card">
         <h2>Pending listings</h2>
+        <p class="section-sub">Review host listings waiting to go live.</p>
         <div id="adminListings"></div>
       </div>
       <div class="card">
+        <h2>10% deposits</h2>
+        <p class="section-sub">
+          Guests pay the 10% deposit to your platform WhatsApp. Status updates when you, the host, or the guest marks it paid after you confirm the money arrived.
+          <button type="button" class="btn-outline" id="refreshDeposits" style="margin-left:0.5rem">Refresh</button>
+        </p>
+        <div id="adminDepositSummary" class="row" style="margin-bottom:0.75rem"></div>
+        <div id="adminDeposits"></div>
+      </div>
+      <div class="card">
         <h2>All bookings</h2>
+        <p class="section-sub">Recent bookings across the platform.</p>
         <div id="adminBookings"></div>
       </div>
     </section>
@@ -210,6 +479,35 @@
     const API = '/v1';
     let token = localStorage.getItem('token') || '';
     const log = (m) => { const el = document.getElementById('log'); el.textContent = new Date().toLocaleTimeString() + ' — ' + m + '\n' + el.textContent; };
+
+    function showSuccessPopup(title, detail) {
+      let overlay = document.getElementById('successPopup');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'successPopup';
+        overlay.className = 'success-popup-overlay';
+        overlay.innerHTML =
+          '<div class="success-popup" role="dialog" aria-modal="true">' +
+          '<div class="success-popup-icon" aria-hidden="true">✓</div>' +
+          '<h3></h3><p></p><button type="button">OK</button></div>';
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', (e) => {
+          if (e.target === overlay) hideSuccessPopup();
+        });
+        overlay.querySelector('button').addEventListener('click', hideSuccessPopup);
+      }
+      overlay.querySelector('h3').textContent = title;
+      overlay.querySelector('p').textContent = detail || '';
+      overlay.classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function hideSuccessPopup() {
+      const overlay = document.getElementById('successPopup');
+      if (!overlay) return;
+      overlay.classList.remove('show');
+      document.body.style.overflow = '';
+    }
 
     async function api(path, opts = {}) {
       const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
@@ -261,27 +559,54 @@
       return r.user;
     }
 
-    document.getElementById('btnGuest').onclick = () => login('+251911000001', 'ET').then(loadGuest);
-    document.getElementById('btnGuestUs').onclick = () => login('+12025550101', 'US').then(loadGuest);
     document.getElementById('btnHost').onclick = () => login('+251988013094', 'ET').then(loadHost);
-    document.getElementById('loadProperties').onclick = loadProperties;
-    document.getElementById('loadMyBookings').onclick = loadMyBookings;
+    document.getElementById('btnAdmin').onclick = () => login('+251911000099', 'ET').then(loadAdmin);
+    const loadMyBookingsBtn = document.getElementById('loadMyBookings');
+    if (loadMyBookingsBtn) loadMyBookingsBtn.onclick = loadMyBookings;
+    const loadNotificationsBtn = document.getElementById('loadNotifications');
+    if (loadNotificationsBtn) loadNotificationsBtn.onclick = loadNotifications;
     document.getElementById('loadHostBookings').onclick = loadHostBookings;
+
+    function setAuthForTab(tab) {
+      const auth = document.getElementById('auth');
+      const showAuth = tab === 'host' || tab === 'admin';
+      auth.classList.toggle('hidden', !showAuth);
+
+      const guestActions = document.getElementById('authGuestActions');
+      if (guestActions) guestActions.classList.add('hidden');
+      document.getElementById('authHostActions').classList.toggle('hidden', tab !== 'host');
+      document.getElementById('authAdminActions').classList.toggle('hidden', tab !== 'admin');
+
+      if (tab === 'host') {
+        document.getElementById('authTitle').textContent = 'Host sign in';
+        document.getElementById('authSub').innerHTML = 'OTP demo code: <code>123456</code> — then manage listings &amp; videos.';
+        document.getElementById('authHint').textContent =
+          'Public guests do not use this. They request stays on the website form.';
+        document.getElementById('country').value = 'ET';
+        document.getElementById('phone').value = '+251988013094';
+      } else if (tab === 'admin') {
+        document.getElementById('authTitle').textContent = 'Admin sign in';
+        document.getElementById('authSub').innerHTML = 'OTP demo code: <code>123456</code> — or open <a href="/owner">/owner</a> with the admin key.';
+        document.getElementById('authHint').textContent =
+          'Public guests do not use this. Booking requests arrive from the website form.';
+        document.getElementById('country').value = 'ET';
+        document.getElementById('phone').value = '+251911000099';
+      }
+    }
 
     document.querySelectorAll('nav button').forEach(btn => {
       btn.onclick = () => {
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+        const tab = btn.dataset.tab;
         ['guest','host','admin'].forEach(t => {
-          document.getElementById('panel-' + t).classList.toggle('hidden', t !== btn.dataset.tab);
+          document.getElementById('panel-' + t).classList.toggle('hidden', t !== tab);
         });
-        if (btn.dataset.tab === 'admin') loadAdmin();
+        setAuthForTab(tab);
+        if (tab === 'admin') loadAdmin();
       };
     });
-
-    const cities = ['Addis Ababa','Hawassa','Bahir Dar','Mekelle','Gondar'];
-    const sel = document.getElementById('cityFilter');
-    cities.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+    setAuthForTab('guest');
 
     let lightboxUrls = [];
     let lightboxIndex = 0;
@@ -418,21 +743,76 @@
 
     function guestBookingLine(b) {
       const x = bookingFeeLines(b);
-      return `${b.checkIn} → ${b.checkOut} · Pay ${x.total} ETB on arrival`;
+      const deposit = b.depositEtb ?? x.fee;
+      const balance = b.balanceOnArrivalEtb ?? (x.total - deposit);
+      const due = b.depositDueAt ? ` due ${b.depositDueAt}` : '';
+      return `${b.checkIn} → ${b.checkOut}<br>
+        Deposit 10%: <strong>${deposit} ETB</strong>${due} · status: ${b.depositStatus || 'not_due'}<br>
+        Balance on arrival: ${balance} ETB (total stay ${x.total} ETB)`;
     }
 
     function hostBookingLine(b) {
       const x = bookingFeeLines(b);
-      return `${b.checkIn} → ${b.checkOut} · Guest pays ${x.total} ETB · You receive ${x.host} ETB (platform fee ${x.fee} ETB)`;
+      const deposit = b.depositEtb ?? x.fee;
+      return `${b.checkIn} → ${b.checkOut} · Stay ${x.total} ETB · Deposit ${deposit} ETB (${b.depositStatus || 'not_due'}) · You receive ${x.host} ETB`;
+    }
+
+    async function loadNotifications() {
+      const el = document.getElementById('guestNotifications');
+      if (!el) return;
+      try {
+        const r = await api('/notifications');
+        if (!r.notifications.length) {
+          el.innerHTML = '<p class="muted">No notifications yet.</p>';
+          return;
+        }
+        el.innerHTML = r.notifications.map(n => `
+          <div class="card" style="${n.readAt ? '' : 'border-left:4px solid #1f9d57'}">
+            <strong>${n.title}</strong>
+            ${n.readAt ? '' : '<span class="badge pending">new</span>'}<br>
+            ${n.body}<br>
+            <span class="muted">${n.createdAt}</span>
+            ${!n.readAt ? `<button class="btn-outline" style="margin-top:0.4rem" data-read-ntf="${n.id}">Mark read</button>` : ''}
+          </div>
+        `).join('');
+        el.querySelectorAll('[data-read-ntf]').forEach(btn => {
+          btn.onclick = async () => {
+            await api('/notifications/' + btn.dataset.readNtf + '/read', { method: 'POST', body: '{}' });
+            loadNotifications();
+          };
+        });
+      } catch (e) {
+        el.innerHTML = `<p class="muted">${e.message}</p>`;
+      }
     }
 
     async function loadMyBookings() {
+      const el = document.getElementById('myBookings');
+      if (!el) return;
       const r = await api('/bookings/mine');
-      document.getElementById('myBookings').innerHTML = r.bookings.length ? r.bookings.map(b => `
+      el.innerHTML = r.bookings.length ? r.bookings.map(b => {
+        const needsDeposit = b.status === 'confirmed' && b.depositStatus !== 'paid' && b.depositStatus !== 'waived';
+        return `
         <div class="card"><strong>${b.propertyTitle || b.propertyId}</strong>
         <span class="badge ${b.status}">${b.status}</span><br>
-        ${guestBookingLine(b)}</div>
-      `).join('') : '<p class="muted">No bookings yet.</p>';
+        ${guestBookingLine(b)}
+        ${needsDeposit ? `
+          <div class="row" style="margin-top:0.5rem">
+            ${b.depositWhatsappHref ? `<a class="btn-primary" style="text-decoration:none;padding:0.5rem 0.75rem" href="${b.depositWhatsappHref}" target="_blank" rel="noopener">Pay 10% on WhatsApp</a>` : ''}
+            <button class="btn-outline" data-deposit-paid="${b.id}">Mark deposit paid</button>
+          </div>` : ''}
+        ${b.depositStatus === 'paid' ? '<p class="muted" style="color:#1f9d57;margin:0.5rem 0 0">Deposit paid ✓ — pay remaining balance on arrival.</p>' : ''}
+        </div>`;
+      }).join('') : '<p class="muted">No bookings yet.</p>';
+
+      document.querySelectorAll('[data-deposit-paid]').forEach(btn => {
+        btn.onclick = async () => {
+          await api('/bookings/' + btn.dataset.depositPaid + '/deposit-paid', { method: 'POST', body: '{}' });
+          log('Deposit marked paid');
+          loadMyBookings();
+          loadNotifications();
+        };
+      });
     }
 
     async function loadHost() {
@@ -508,8 +888,12 @@
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || res.statusText);
-        status.textContent = data.message || 'Listing published! Admin will review before guests can book.';
+        status.textContent = 'Guest house published successfully.';
         log('Published listing: ' + title);
+        showSuccessPopup(
+          'Guest house published successfully',
+          'Photos are live now — guests can browse this stay on the website.'
+        );
         loadHostProperties();
         document.getElementById('hostPhotoFiles').value = '';
         hostPreviewUrls = [];
@@ -540,27 +924,6 @@
       }
     }
 
-    document.getElementById('saveHostVideoUrls').onclick = async () => {
-      const propertyId = document.getElementById('hostVideoPropertySelect').value;
-      const status = document.getElementById('hostVideoStatus');
-      const lines = document.getElementById('hostVideoUrls').value
-        .split(/\n/).map(s => s.trim()).filter(Boolean);
-      if (!propertyId) { status.textContent = 'Select a property.'; return; }
-      if (!lines.length) { status.textContent = 'Paste at least one YouTube or Vimeo URL.'; return; }
-      status.textContent = 'Saving…';
-      try {
-        const data = await api('/host/properties/' + propertyId + '/videos', {
-          method: 'POST',
-          body: JSON.stringify({ urls: lines })
-        });
-        status.textContent = data.message || 'Videos saved.';
-        log('Videos linked for ' + propertyId);
-        loadHostProperties();
-      } catch (e) {
-        status.textContent = e.message;
-      }
-    };
-
     document.getElementById('uploadHostVideos').onclick = async () => {
       const propertyId = document.getElementById('hostVideoPropertySelect').value;
       const files = document.getElementById('hostVideoFiles').files;
@@ -581,6 +944,28 @@
         log('Videos uploaded for ' + propertyId);
         loadHostProperties();
         document.getElementById('hostVideoFiles').value = '';
+      } catch (e) {
+        status.textContent = e.message;
+      }
+    };
+
+    document.getElementById('saveHostVideoUrls').onclick = async () => {
+      const propertyId = document.getElementById('hostVideoPropertySelect').value;
+      const status = document.getElementById('hostVideoStatus');
+      const lines = document.getElementById('hostVideoUrls').value
+        .split(/\n/).map(s => s.trim()).filter(Boolean);
+      if (!propertyId) { status.textContent = 'Select a property.'; return; }
+      if (!lines.length) { status.textContent = 'Paste at least one YouTube or Vimeo URL (optional field).'; return; }
+      status.textContent = 'Saving links…';
+      try {
+        const data = await api('/host/properties/' + propertyId + '/videos', {
+          method: 'POST',
+          body: JSON.stringify({ urls: lines })
+        });
+        status.textContent = data.message || 'Video links saved.';
+        log('Video links saved for ' + propertyId);
+        document.getElementById('hostVideoUrls').value = '';
+        loadHostProperties();
       } catch (e) {
         status.textContent = e.message;
       }
@@ -625,7 +1010,12 @@
               <button class="btn-outline" data-decline="${b.id}">Decline</button>
             </div>` : ''}
           ${b.status === 'confirmed' && b.paymentStatus === 'unpaid' ? `
-            <button class="btn-outline" style="margin-top:0.5rem" data-paid="${b.id}">Mark paid on arrival</button>` : ''}
+            <button class="btn-outline" style="margin-top:0.5rem" data-paid="${b.id}">Mark balance paid on arrival</button>` : ''}
+          ${b.status === 'confirmed' && b.depositStatus !== 'paid' && b.depositStatus !== 'waived' ? `
+            <div class="row" style="margin-top:0.5rem">
+              ${b.depositRemindGuestWhatsappHref ? `<a class="btn-outline" style="text-decoration:none;padding:0.5rem 0.75rem" href="${b.depositRemindGuestWhatsappHref}" target="_blank" rel="noopener">Remind guest (WhatsApp)</a>` : ''}
+              <button class="btn-primary" data-deposit-paid-host="${b.id}">Mark deposit paid</button>
+            </div>` : ''}
         </div>
       `).join('');
       el.querySelectorAll('[data-approve]').forEach(x => x.onclick = async () => {
@@ -639,6 +1029,10 @@
       el.querySelectorAll('[data-paid]').forEach(x => x.onclick = async () => {
         await api('/host/bookings/' + x.dataset.paid + '/mark-paid', { method: 'POST' });
         log('Marked paid'); loadHostBookings();
+      });
+      el.querySelectorAll('[data-deposit-paid-host]').forEach(x => x.onclick = async () => {
+        await api('/host/bookings/' + x.dataset.depositPaidHost + '/deposit-paid', { method: 'POST', body: '{}' });
+        log('Deposit marked paid'); loadHostBookings();
       });
     }
 
@@ -673,6 +1067,41 @@
         log('Declined booking request'); loadAdmin();
       });
 
+      const hosts = await api('/admin/hosts', { admin: true });
+      document.getElementById('adminHosts').innerHTML = (hosts.hosts || []).map(h => {
+        const badge = h.hostBlocked
+          ? '<span class="badge declined">removed</span>'
+          : (h.hostVerified ? '<span class="badge confirmed">verified</span>' : '<span class="badge pending">unverified</span>');
+        const actions = h.hostBlocked
+          ? `<button class="btn-outline" data-reinstate-host="${h.id}">Allow re-apply</button>`
+          : `${!h.hostVerified ? `<button class="btn-primary" data-verify-host="${h.id}">Verify</button>` : ''}
+             <button class="btn-outline" data-remove-host="${h.id}">Remove host</button>`;
+        return `<div class="card row" style="align-items:flex-start">
+          <div style="flex:1">
+            <strong>${h.name}</strong> ${badge}<br>
+            <span class="muted">${h.phone} · ${h.listingCount || 0} listings (${h.liveListingCount || 0} live)</span>
+          </div>
+          <div class="row">${actions}</div>
+        </div>`;
+      }).join('') || '<p class="muted">No hosts yet</p>';
+      document.querySelectorAll('[data-verify-host]').forEach(b => b.onclick = async () => {
+        await api('/admin/hosts/' + b.dataset.verifyHost + '/verify', { method: 'POST', body: '{}', admin: true });
+        log('Host verified'); loadAdmin();
+      });
+      document.querySelectorAll('[data-remove-host]').forEach(b => b.onclick = async () => {
+        const reason = prompt('Reason for removing this host?') || 'Policy violation';
+        await api('/admin/hosts/' + b.dataset.removeHost + '/remove', {
+          method: 'POST',
+          body: JSON.stringify({ reason }),
+          admin: true,
+        });
+        log('Host removed'); loadAdmin();
+      });
+      document.querySelectorAll('[data-reinstate-host]').forEach(b => b.onclick = async () => {
+        await api('/admin/hosts/' + b.dataset.reinstateHost + '/reinstate', { method: 'POST', body: '{}', admin: true });
+        log('Host may re-apply'); loadAdmin();
+      });
+
       const list = await api('/admin/properties?status=pending_review', { admin: true });
       document.getElementById('adminListings').innerHTML = list.properties.map(p => `
         <div class="card row">
@@ -688,19 +1117,58 @@
       document.getElementById('adminBookings').innerHTML = bk.bookings.slice(0, 10).map(b => {
         const x = bookingFeeLines(b);
         return `<div class="card">${b.propertyTitle || b.propertyId} · ${b.guestName} · ${b.status}<br>
-          Guest ${x.total} ETB · Host ${x.host} ETB · Platform fee ${x.fee} ETB
+          Guest ${x.total} ETB · Host ${x.host} ETB · Platform fee ${x.fee} ETB<br>
+          Deposit ${b.depositEtb ?? x.fee} ETB · <strong>${b.depositStatus || 'not_due'}</strong>
           ${b.guestPhone ? `<br>Phone ${b.guestPhone}` : ''}</div>`;
       }).join('');
+
+      await loadAdminDeposits();
     }
 
+    async function loadAdminDeposits() {
+      const data = await api('/admin/deposits?status=all', { admin: true });
+      const s = data.summary || {};
+      document.getElementById('adminDepositSummary').innerHTML = `
+        <div class="card" style="min-width:140px"><strong>${s.awaiting || 0}</strong><br><span class="muted">awaiting payment</span><br><span class="muted">${s.awaitingEtb || 0} ETB</span></div>
+        <div class="card" style="min-width:140px"><strong>${s.paid || 0}</strong><br><span class="muted">deposits paid</span><br><span class="muted">${s.paidEtb || 0} ETB</span></div>
+      `;
+      document.getElementById('adminDeposits').innerHTML = (data.deposits || []).slice(0, 20).map(b => {
+        const paid = b.depositStatus === 'paid';
+        return `<div class="card">
+          <strong>${b.propertyTitle || b.propertyId}</strong>
+          <span class="badge ${paid ? 'confirmed' : 'pending'}">${b.depositStatus || 'not_due'}</span><br>
+          Guest: ${b.guestName || '?'} ${b.guestPhone ? '(' + b.guestPhone + ')' : ''}<br>
+          Host: ${b.hostName || '?'} ${b.hostPhone ? '(' + b.hostPhone + ')' : ''}<br>
+          Deposit <strong>${b.depositEtb || 0} ETB</strong>
+          ${b.depositDueAt ? ' · due ' + b.depositDueAt : ''}
+          · check-in ${b.checkIn || '?'}
+          ${!paid && b.status === 'confirmed' ? `
+            <div class="row" style="margin-top:0.5rem">
+              <button class="btn-primary" data-admin-deposit-paid="${b.id}">Confirm deposit received</button>
+            </div>` : ''}
+          ${paid ? '<p class="muted" style="color:#1f9d57;margin:0.5rem 0 0">Deposit confirmed ✓</p>' : ''}
+        </div>`;
+      }).join('') || '<p class="muted">No deposit records yet</p>';
+      document.querySelectorAll('[data-admin-deposit-paid]').forEach(btn => {
+        btn.onclick = async () => {
+          await api('/admin/bookings/' + btn.dataset.adminDepositPaid + '/deposit-paid', {
+            method: 'POST', body: '{}', admin: true,
+          });
+          log('Deposit confirmed by admin');
+          loadAdmin();
+        };
+      });
+    }
+
+    document.getElementById('refreshDeposits')?.addEventListener('click', () => loadAdminDeposits());
+
     async function loadGuest() {
-      await loadProperties();
-      await loadMyBookings();
+      await loadMyBookings().catch(() => {});
+      await loadNotifications().catch(() => {});
     }
 
     if (token) {
       document.getElementById('userLine').textContent = 'Restored session (token in browser)';
-      loadGuest().catch(() => {});
     }
   </script>
 </body>

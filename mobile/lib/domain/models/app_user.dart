@@ -10,6 +10,7 @@ class AppUser extends Equatable {
     required this.roles,
     required this.activeRole,
     this.hostVerified = false,
+    this.hostBlocked = false,
     this.guestCountry,
   });
 
@@ -19,11 +20,12 @@ class AppUser extends Equatable {
   final List<UserRole> roles;
   final UserRole activeRole;
   final bool hostVerified;
+  final bool hostBlocked;
   final String? guestCountry;
 
   bool get canBeGuest => roles.contains(UserRole.guest);
-  bool get canBeHost => roles.contains(UserRole.host);
+  bool get canBeHost => roles.contains(UserRole.host) && !hostBlocked;
 
   @override
-  List<Object?> get props => [id, phone, activeRole, roles];
+  List<Object?> get props => [id, phone, activeRole, roles, hostBlocked];
 }

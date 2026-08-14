@@ -22,7 +22,7 @@ export function renderLayout(meta: PageMeta, body: string): string {
   const orgLd = `<script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org",
     "@type": "LodgingBusiness",
-    name: "Ethio Guest Houses",
+    name: "AddisAbaba Guest Houses",
     description:
       "Guest houses in Addis Ababa for travelers worldwide. Contact via WhatsApp, Viber, phone, or email.",
     url: base,
@@ -46,7 +46,7 @@ export function renderLayout(meta: PageMeta, body: string): string {
   <link rel="canonical" href="${escapeHtml(url)}" />
   <meta name="robots" content="index,follow" />
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Ethio Guest Houses" />
+  <meta property="og:site_name" content="AddisAbaba Guest Houses" />
   <meta property="og:title" content="${escapeHtml(meta.title)}" />
   <meta property="og:description" content="${escapeHtml(meta.description)}" />
   <meta property="og:url" content="${escapeHtml(url)}" />
@@ -66,7 +66,7 @@ export function renderLayout(meta: PageMeta, body: string): string {
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header">
     <div class="shell header-inner">
-      <a class="brand" href="/">Ethio Guest Houses</a>
+      <a class="brand" href="/">AddisAbaba Guest Houses</a>
       <nav class="nav" aria-label="Primary">
         <a href="/guest-houses/city/addis-ababa">Addis Ababa</a>
         <a href="/guest-houses">Browse stays</a>
@@ -81,7 +81,7 @@ export function renderLayout(meta: PageMeta, body: string): string {
   <footer class="site-footer">
     <div class="shell footer-grid">
       <div>
-        <p class="footer-brand">Ethio Guest Houses</p>
+        <p class="footer-brand">AddisAbaba Guest Houses</p>
         <p class="footer-copy">Guest houses in Addis Ababa for travelers worldwide — from $50 USD / night.</p>
       </div>
       <div>
@@ -92,7 +92,7 @@ export function renderLayout(meta: PageMeta, body: string): string {
       </div>
       ${renderFooterContact()}
     </div>
-    <p class="footer-fine shell">&copy; ${new Date().getFullYear()} Ethio Guest Houses · Addis Ababa, Ethiopia</p>
+    <p class="footer-fine shell">&copy; ${new Date().getFullYear()} AddisAbaba Guest Houses · Addis Ababa, Ethiopia</p>
   </footer>
   <script src="/site/site.js" defer></script>
 </body>

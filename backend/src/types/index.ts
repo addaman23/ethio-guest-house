@@ -16,12 +16,21 @@ export type PropertyStatus =
 export type PaymentMethod = "pay_on_arrival" | "telebirr";
 export type PaymentStatus = "unpaid" | "paid";
 
+export type DepositStatus =
+  | "not_due"
+  | "due"
+  | "reminded"
+  | "paid"
+  | "waived";
+
 export interface UserRow {
   id: string;
   phone: string;
   name: string;
   roles: string;
   host_verified: number;
+  /** 1 = admin removed this host; cannot re-register as host until cleared. */
+  host_blocked: number;
   guest_country: string | null;
   created_at: string;
 }
@@ -58,6 +67,21 @@ export interface BookingRow {
   payment_method: PaymentMethod;
   payment_status: PaymentStatus;
   guest_message: string | null;
+  deposit_etb: number;
+  deposit_due_at: string | null;
+  deposit_status: DepositStatus;
+  deposit_reminded_at: string | null;
+  created_at: string;
+}
+
+export interface NotificationRow {
+  id: string;
+  user_id: string;
+  booking_id: string | null;
+  type: string;
+  title: string;
+  body: string;
+  read_at: string | null;
   created_at: string;
 }
 

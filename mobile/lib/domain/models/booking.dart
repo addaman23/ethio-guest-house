@@ -17,10 +17,15 @@ class Booking extends Equatable {
     required this.subtotalEtb,
     required this.platformFeeEtb,
     required this.hostPayoutEtb,
+    required this.depositEtb,
+    required this.balanceOnArrivalEtb,
+    required this.depositStatus,
     required this.status,
     required this.paymentMethod,
     required this.paymentStatus,
     required this.createdAt,
+    this.depositDueAt,
+    this.depositWhatsappHref,
   });
 
   final String id;
@@ -35,6 +40,11 @@ class Booking extends Equatable {
   final int subtotalEtb;
   final int platformFeeEtb;
   final int hostPayoutEtb;
+  final int depositEtb;
+  final int balanceOnArrivalEtb;
+  final String depositStatus;
+  final DateTime? depositDueAt;
+  final String? depositWhatsappHref;
   final BookingStatus status;
   final PaymentMethod paymentMethod;
   final PaymentStatus paymentStatus;
@@ -42,6 +52,11 @@ class Booking extends Equatable {
 
   int get nights => checkOut.difference(checkIn).inDays;
 
+  bool get needsDeposit =>
+      status == BookingStatus.confirmed &&
+      depositStatus != 'paid' &&
+      depositStatus != 'waived';
+
   @override
-  List<Object?> get props => [id, propertyId, status, checkIn, checkOut];
+  List<Object?> get props => [id, propertyId, status, checkIn, checkOut, depositStatus];
 }

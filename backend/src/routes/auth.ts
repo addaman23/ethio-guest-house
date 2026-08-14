@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { getDb } from "../db/database";
 import { parseRoles, serializeRoles, userToJson } from "../db/mappers";
-import { signToken } from "../middleware/auth";
+import { signToken, sessionExpiresForRoles } from "../middleware/auth";
 import { HttpError } from "../middleware/errorHandler";
 import { requestOtp, verifyOtp } from "../services/otp";
 import type { UserRow } from "../types";
@@ -13,10 +13,10 @@ const router = Router();
 
 const phoneSchema = internationalPhoneSchema;
 
-router.post("/otp/request", (req, res, next) => {
+router.post("/otp/request", async (req, res, next) => {
   try {
     const { phone } = z.object({ phone: phoneSchema }).parse(req.body);
-    const result = requestOtp(phone);
+    const result = await requestOtp(phone);
     res.json({ ok: true, phone, ...result });
   } catch (e) {
     next(e);
@@ -60,8 +60,10 @@ router.post("/otp/verify", (req, res, next) => {
     }
 
     const token = signToken(user);
+    const roles = parseRoles(user.roles);
     res.json({
       token,
+      expiresIn: sessionExpiresForRoles(roles),
       user: userToJson(user),
     });
   } catch (e) {

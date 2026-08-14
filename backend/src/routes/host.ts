@@ -26,6 +26,10 @@ import {
 } from "../utils/propertyVideos";
 import { resolveNightlyRateEtb } from "../utils/pricing";
 import { newId } from "../utils/ids";
+import {
+  ensureBookingDepositFields,
+  markDepositPaid,
+} from "../utils/deposit";
 
 function nightlyFromBody(input: {
   nightlyRateUsd?: number;
@@ -47,20 +51,32 @@ function assertHost(req: Request): void {
   if (!req.user!.roles.includes("host")) {
     throw new HttpError(403, "Host role required. Contact admin for verification.");
   }
+  if (req.user!.hostBlocked) {
+    throw new HttpError(
+      403,
+      "This host account was removed by an admin. Contact support to appeal."
+    );
+  }
 }
 
 function enrichBooking(row: BookingRow) {
+  const ensured = ensureBookingDepositFields(row);
   const db = getDb();
   const prop = db
-    .prepare("SELECT title FROM properties WHERE id = ?")
-    .get(row.property_id) as { title: string } | undefined;
+    .prepare("SELECT title, city FROM properties WHERE id = ?")
+    .get(ensured.property_id) as { title: string; city: string } | undefined;
   const guest = db
-    .prepare("SELECT name FROM users WHERE id = ?")
-    .get(row.guest_id) as { name: string } | undefined;
+    .prepare("SELECT name, phone, guest_country FROM users WHERE id = ?")
+    .get(ensured.guest_id) as
+    | { name: string; phone: string; guest_country: string | null }
+    | undefined;
 
-  return bookingToJson(row, {
+  return bookingToJson(ensured, {
     propertyTitle: prop?.title,
+    propertyCity: prop?.city,
     guestName: guest?.name,
+    guestPhone: guest?.phone,
+    guestCountry: guest?.guest_country,
   });
 }
 
@@ -113,7 +129,7 @@ router.post("/properties", (req, res, next) => {
         `INSERT INTO properties (
           id, host_id, title, city, address, description,
           nightly_rate_etb, max_guests, amenities, status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_review')`
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'live')`
       )
       .run(
         id,
@@ -190,7 +206,7 @@ router.post(
           `INSERT INTO properties (
             id, host_id, title, city, address, description,
             nightly_rate_etb, max_guests, amenities, status
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_review')`
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'live')`
         )
         .run(
           id,
@@ -221,7 +237,7 @@ router.post(
         property: propertyToJson(row),
         uploaded: paths.length,
         message:
-          "Listing saved with photos, description, and price. Admin will review before guests can book.",
+          "Guest house published successfully. Photos are live for all guests on the website.",
       });
     } catch (e) {
       next(e);
@@ -367,7 +383,7 @@ router.post("/properties/:id/videos", (req, res, next) => {
 
     res.status(201).json({
       property: propertyToJson(row),
-      message: "Videos saved. They appear on the public website when the listing is live.",
+      message: "Videos saved. Guests can watch them on the public website now.",
     });
   } catch (e) {
     next(e);
@@ -405,7 +421,7 @@ router.post(
       res.status(201).json({
         property: propertyToJson(row),
         uploaded: paths.length,
-        message: "Videos uploaded. Guests see them on the public website when the listing is live.",
+        message: "Videos uploaded. Guests can watch them on the public website now.",
       });
     } catch (e) {
       next(e);
@@ -515,6 +531,31 @@ router.post("/bookings/:id/mark-paid", (req, res, next) => {
   }
 });
 
+router.post("/bookings/:id/deposit-paid", (req, res, next) => {
+  try {
+    assertHost(req);
+    const booking = getDb()
+      .prepare(
+        `SELECT b.* FROM bookings b
+         JOIN properties p ON p.id = b.property_id
+         WHERE b.id = ? AND p.host_id = ?`
+      )
+      .get(req.params.id, req.user!.id) as BookingRow | undefined;
+
+    if (!booking) {
+      throw new HttpError(404, "Booking not found");
+    }
+    if (booking.status !== "confirmed") {
+      throw new HttpError(400, "Only confirmed bookings accept deposit payment");
+    }
+
+    const row = markDepositPaid(booking.id);
+    res.json({ booking: enrichBooking(row) });
+  } catch (e) {
+    next(e);
+  }
+});
+
 /** Let a guest user register intent to become a host */
 router.post("/register-role", (req, res, next) => {
   try {
@@ -522,6 +563,13 @@ router.post("/register-role", (req, res, next) => {
     const row = db
       .prepare("SELECT * FROM users WHERE id = ?")
       .get(req.user!.id) as UserRow;
+
+    if ((row.host_blocked ?? 0) === 1) {
+      throw new HttpError(
+        403,
+        "This account was removed as a host by an admin. Contact support to appeal."
+      );
+    }
 
     const roles = row.roles.split(",").filter(Boolean);
     if (!roles.includes("host")) {

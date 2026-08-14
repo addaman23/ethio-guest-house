@@ -1,6 +1,5 @@
 import { propertyToJson } from "../db/mappers";
 import type { PropertyRow } from "../types";
-import type { PropertyVideo } from "../utils/propertyVideos";
 import { renderContactSection } from "../utils/contact";
 import { citySlug, escapeHtml } from "./escape";
 import { renderLayout } from "./layout";
@@ -12,36 +11,54 @@ function formatUsd(n: number): string {
   return `$${rounded}`;
 }
 
-function videoBlock(videos: PropertyVideo[], title: string): string {
-  if (!videos.length) return "";
-  const items = videos
-    .map((v, i) => {
-      if (v.kind === "youtube" || v.kind === "vimeo") {
-        return `<div class="video-frame">
-          <iframe
-            src="${escapeHtml(v.embedUrl!)}"
-            title="${escapeHtml(`${title} tour video ${i + 1}`)}"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen
-            loading="lazy"
-          ></iframe>
-        </div>`;
-      }
-      return `<div class="video-frame">
-        <video controls playsinline preload="metadata" src="${escapeHtml(v.url)}">
-          Your browser does not support video playback.
-        </video>
-      </div>`;
-    })
-    .join("");
+function mediaGallery(p: PropertyJson): string {
+  const photoItems = p.imageUrls.map((url, i) => {
+    return `<button type="button" class="gallery-item media-thumb" data-media-type="image" data-media-src="${escapeHtml(url)}" data-media-label="${escapeHtml(`${p.title} photo ${i + 1}`)}" aria-label="View photo ${i + 1}">
+      <img src="${escapeHtml(url)}" alt="${escapeHtml(`${p.title} photo ${i + 1}`)}" loading="${i === 0 ? "eager" : "lazy"}" />
+    </button>`;
+  });
 
-  return `<section class="section video-section">
-    <div class="shell">
-      <h2 class="section-title">House tour videos</h2>
-      <p class="section-lead">Walk through the rooms before you request a stay.</p>
-      <div class="video-stack">${items}</div>
-    </div>
-  </section>`;
+  const videoItems = p.videos.map((v, i) => {
+    const label = `${p.title} video ${i + 1}`;
+    if (v.kind === "youtube" || v.kind === "vimeo") {
+      const thumb =
+        v.kind === "youtube" && v.embedUrl
+          ? `https://img.youtube.com/vi/${escapeHtml(
+              (v.embedUrl.split("/embed/")[1] || "").split("?")[0]
+            )}/hqdefault.jpg`
+          : "";
+      return `<button type="button" class="gallery-item media-thumb is-video" data-media-type="embed" data-media-src="${escapeHtml(v.embedUrl || v.url)}" data-media-label="${escapeHtml(label)}" aria-label="Play video ${i + 1}">
+        ${thumb ? `<img src="${thumb}" alt="" loading="lazy" />` : `<span class="media-video-fallback" aria-hidden="true"></span>`}
+        <span class="play-badge" aria-hidden="true">▶</span>
+        <span class="media-chip">Video</span>
+      </button>`;
+    }
+    return `<button type="button" class="gallery-item media-thumb is-video" data-media-type="video" data-media-src="${escapeHtml(v.url)}" data-media-label="${escapeHtml(label)}" aria-label="Play video ${i + 1}">
+      <video src="${escapeHtml(v.url)}" muted playsinline preload="metadata"></video>
+      <span class="play-badge" aria-hidden="true">▶</span>
+      <span class="media-chip">Video</span>
+    </button>`;
+  });
+
+  const items = [...photoItems, ...videoItems].join("");
+  if (!items) {
+    return `<div class="card-photo placeholder"></div>`;
+  }
+
+  return `<div class="stay-gallery" data-media-gallery>
+    ${items}
+  </div>
+  <p class="gallery-hint">Tap any photo or video to open full size</p>`;
+}
+
+function mediaLightboxMarkup(): string {
+  return `<div id="mediaLightbox" class="media-lightbox hidden" role="dialog" aria-modal="true" aria-label="Media viewer">
+    <button type="button" class="media-lightbox-close" data-media-close aria-label="Close">&times;</button>
+    <button type="button" class="media-lightbox-nav media-lightbox-prev" data-media-prev aria-label="Previous">&#8249;</button>
+    <button type="button" class="media-lightbox-nav media-lightbox-next" data-media-next aria-label="Next">&#8250;</button>
+    <div class="media-lightbox-stage" data-media-stage></div>
+    <p class="media-lightbox-caption" data-media-caption></p>
+  </div>`;
 }
 
 function propertyCard(p: PropertyJson): string {
@@ -69,7 +86,7 @@ export function homePage(properties: PropertyRow[]): string {
   <section class="hero" style="${heroImage ? `--hero-image:url('${escapeHtml(heroImage)}')` : ""}">
     <div class="hero-veil"></div>
     <div class="shell hero-content">
-      <p class="brand-mark">Ethio Guest Houses</p>
+      <p class="brand-mark">AddisAbaba Guest Houses</p>
       <h1>Guest houses in Addis Ababa</h1>
       <p class="hero-lead">Welcoming travelers from around the world. Browse verified Addis Ababa stays from $50 USD / night — with photos, video tours, and easy contact on WhatsApp, Viber, phone, or email.</p>
       <div class="hero-actions">
@@ -94,12 +111,12 @@ export function homePage(properties: PropertyRow[]): string {
     <div class="shell how-grid">
       <div>
         <h2 class="section-title">For guests worldwide</h2>
-        <p class="section-lead">Book from the USA, Europe, Africa, Asia — we help you find a stay in Addis Ababa.</p>
+        <p class="section-lead">Book from the USA, Europe, Africa, Asia, United Arab Emirates — we help you find a stay in Addis Ababa.</p>
       </div>
       <ol class="how-list">
         <li><strong>Browse</strong> Addis Ababa guest houses with photos and videos.</li>
         <li><strong>Message us</strong> on WhatsApp, Viber, phone, or email.</li>
-        <li><strong>Stay</strong> — pay on arrival in ETB (prices listed from $50 USD).</li>
+        <li><strong>Stay</strong> — pay 10% deposit 1 day before check-in; remainder on arrival in ETB.</li>
       </ol>
     </div>
   </section>
@@ -108,15 +125,15 @@ export function homePage(properties: PropertyRow[]): string {
 
   return renderLayout(
     {
-      title: "Ethio Guest Houses | Addis Ababa stays for travelers worldwide",
+      title: "AddisAbaba Guest Houses | Addis Ababa stays for travelers worldwide",
       description:
-        "Find guest houses in Addis Ababa from $50 USD / night. Contact Ethio Guest Houses by WhatsApp, Viber, phone, or email — welcoming guests from around the world.",
+        "Find guest houses in Addis Ababa from $50 USD / night. Contact AddisAbaba Guest Houses by WhatsApp, Viber, phone, or email — welcoming guests from around the world.",
       path: "/",
       image: heroImage,
       jsonLd: {
         "@context": "https://schema.org",
         "@type": "WebSite",
-        name: "Ethio Guest Houses",
+        name: "AddisAbaba Guest Houses",
         url: "/",
         description:
           "Guest houses in Addis Ababa for international travelers, with WhatsApp and Viber contact.",
@@ -139,10 +156,10 @@ export function listingsPage(properties: PropertyRow[], cityFilter?: string): st
     return a.localeCompare(b);
   });
   const title = cityFilter
-    ? `Guest houses in ${cityFilter} | Ethio Guest Houses`
-    : "Guest houses in Addis Ababa & Ethiopia | Ethio Guest Houses";
+    ? `Guest houses in ${cityFilter} | AddisAbaba Guest Houses`
+    : "Guest houses in Addis Ababa & Ethiopia | AddisAbaba Guest Houses";
   const description = cityFilter
-    ? `Browse Ethio guest houses in ${cityFilter} from $50 USD / night. Contact us on WhatsApp or Viber.`
+    ? `Browse AddisAbaba Guest Houses in ${cityFilter} from $50 USD / night. Contact us on WhatsApp or Viber.`
     : "Browse guest houses in Addis Ababa and across Ethiopia from $50 USD / night. For travelers worldwide.";
 
   const cityLinks = cities
@@ -155,7 +172,7 @@ export function listingsPage(properties: PropertyRow[], cityFilter?: string): st
   const body = `
   <section class="page-head">
     <div class="shell">
-      <p class="brand-mark">Ethio Guest Houses</p>
+      <p class="brand-mark">AddisAbaba Guest Houses</p>
       <h1>${cityFilter ? `Guest houses in ${escapeHtml(cityFilter)}` : "Guest houses for worldwide travelers"}</h1>
       <p class="section-lead">${
         cityFilter
@@ -202,29 +219,32 @@ export function listingsPage(properties: PropertyRow[], cityFilter?: string): st
 
 export function stayPage(row: PropertyRow): string {
   const p = propertyToJson(row);
-  const gallery = p.imageUrls
-    .map(
-      (url, i) =>
-        `<figure class="gallery-item">
-          <img src="${escapeHtml(url)}" alt="${escapeHtml(`${p.title} photo ${i + 1}`)}" loading="${i === 0 ? "eager" : "lazy"}" />
-        </figure>`
-    )
-    .join("");
 
   const amenities = p.amenities
     .map((a) => `<li>${escapeHtml(a)}</li>`)
     .join("");
 
+  const photoCount = p.imageUrls.length;
+  const videoCount = p.videos.length;
+  const mediaSummary =
+    photoCount || videoCount
+      ? `${photoCount} photo${photoCount === 1 ? "" : "s"}${videoCount ? ` · ${videoCount} video${videoCount === 1 ? "" : "s"}` : ""}`
+      : "";
+
   const body = `
   <section class="stay-hero">
     <div class="shell stay-hero-grid">
-      <div class="stay-gallery">${gallery || `<div class="card-photo placeholder"></div>`}</div>
+      <div>
+        ${mediaGallery(p)}
+        ${mediaSummary ? `<p class="card-meta" style="margin-top:0.35rem">${escapeHtml(mediaSummary)}</p>` : ""}
+      </div>
       <div class="stay-summary">
-        <p class="brand-mark">Ethio Guest Houses</p>
+        <p class="brand-mark">AddisAbaba Guest Houses</p>
         <h1>${escapeHtml(p.title)}</h1>
         <p class="card-meta">${escapeHtml(p.city)} · ${escapeHtml(p.address)}</p>
         <p class="stay-rate">${formatUsd(p.nightlyRateUsd)} <span>USD / night · max ${p.maxGuests} guests</span></p>
         <p class="fine-print">${escapeHtml(p.payOnArrivalNote)}</p>
+        <p class="fine-print">10% deposit due 1 day before check-in (WhatsApp); remainder paid on arrival.</p>
         <p class="stay-desc">${escapeHtml(p.description)}</p>
         <ul class="amenity-list">${amenities}</ul>
         <div class="hero-actions" style="margin-top:1rem">
@@ -252,17 +272,17 @@ export function stayPage(row: PropertyRow): string {
       </form>
     </div>
   </section>
-  ${videoBlock(p.videos, p.title)}
   <section class="section">
     <div class="shell">
       <a class="text-link" href="/guest-houses/city/${citySlug(p.city)}">More guest houses in ${escapeHtml(p.city)}</a>
     </div>
   </section>
-  ${renderContactSection({ compact: true })}`;
+  ${renderContactSection({ compact: true })}
+  ${mediaLightboxMarkup()}`;
 
   return renderLayout(
     {
-      title: `${p.title} in ${p.city} | Ethio Guest Houses`,
+      title: `${p.title} in ${p.city} | AddisAbaba Guest Houses`,
       description: `${p.description} From ${formatUsd(p.nightlyRateUsd)} USD/night. Contact us on WhatsApp or Viber.`,
       path: `/stay/${p.id}`,
       image: p.imageUrl,
@@ -289,7 +309,7 @@ export function stayPage(row: PropertyRow): string {
 export function notFoundPage(): string {
   return renderLayout(
     {
-      title: "Not found | Ethio Guest Houses",
+      title: "Not found | AddisAbaba Guest Houses",
       description: "This page could not be found.",
       path: "/404",
     },

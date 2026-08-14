@@ -1,3 +1,4 @@
+import '../../domain/models/app_notification.dart';
 import '../../domain/models/app_user.dart';
 import '../../domain/models/booking.dart';
 import '../../domain/models/booking_status.dart';
@@ -74,6 +75,7 @@ AppUser parseUser(Map<String, dynamic> json, {UserRole? activeRole}) {
     roles: roles.isEmpty ? [UserRole.guest] : roles,
     activeRole: roles.contains(resolved) ? resolved : roles.first,
     hostVerified: json['hostVerified'] as bool? ?? false,
+    hostBlocked: json['hostBlocked'] as bool? ?? false,
     guestCountry: json['guestCountry'] as String?,
   );
 }
@@ -84,6 +86,8 @@ Map<String, dynamic> userToJson(AppUser user) => {
       'name': user.name,
       'roles': user.roles.map((r) => r.name).toList(),
       'hostVerified': user.hostVerified,
+      'hostBlocked': user.hostBlocked,
+      'guestCountry': user.guestCountry,
       'activeRole': user.activeRole.name,
     };
 
@@ -115,6 +119,13 @@ Property parseProperty(Map<String, dynamic> json) {
 }
 
 Booking parseBooking(Map<String, dynamic> json) {
+  final total = json['totalEtb'] as int;
+  final subtotal = json['subtotalEtb'] as int? ?? total;
+  final fee = json['platformFeeEtb'] as int? ??
+      (subtotal * PlatformCommission.rate).round();
+  final deposit = json['depositEtb'] as int? ?? fee;
+  final balance = json['balanceOnArrivalEtb'] as int? ?? (subtotal - deposit);
+  final dueRaw = json['depositDueAt'] as String?;
   return Booking(
     id: json['id'] as String,
     propertyId: json['propertyId'] as String,
@@ -124,16 +135,31 @@ Booking parseBooking(Map<String, dynamic> json) {
     checkIn: DateTime.parse(json['checkIn'] as String),
     checkOut: DateTime.parse(json['checkOut'] as String),
     guests: json['guests'] as int,
-    totalEtb: json['totalEtb'] as int,
-    subtotalEtb: json['subtotalEtb'] as int? ?? json['totalEtb'] as int,
-    platformFeeEtb: json['platformFeeEtb'] as int? ??
-        ((json['totalEtb'] as int) * PlatformCommission.rate).round(),
-    hostPayoutEtb: json['hostPayoutEtb'] as int? ??
-        (json['totalEtb'] as int) -
-            ((json['totalEtb'] as int) * PlatformCommission.rate).round(),
+    totalEtb: total,
+    subtotalEtb: subtotal,
+    platformFeeEtb: fee,
+    hostPayoutEtb: json['hostPayoutEtb'] as int? ?? (subtotal - fee),
+    depositEtb: deposit,
+    balanceOnArrivalEtb: balance,
+    depositStatus: json['depositStatus'] as String? ?? 'not_due',
+    depositDueAt: dueRaw != null && dueRaw.isNotEmpty ? DateTime.tryParse(dueRaw) : null,
+    depositWhatsappHref: json['depositWhatsappHref'] as String?,
     status: parseBookingStatus(json['status'] as String),
     paymentMethod: parsePaymentMethod(json['paymentMethod'] as String),
     paymentStatus: parsePaymentStatus(json['paymentStatus'] as String),
+    createdAt: DateTime.parse(json['createdAt'] as String),
+  );
+}
+
+AppNotification parseNotification(Map<String, dynamic> json) {
+  final readRaw = json['readAt'] as String?;
+  return AppNotification(
+    id: json['id'] as String,
+    type: json['type'] as String? ?? 'deposit_due',
+    title: json['title'] as String? ?? '',
+    body: json['body'] as String? ?? '',
+    bookingId: json['bookingId'] as String?,
+    readAt: readRaw != null && readRaw.isNotEmpty ? DateTime.tryParse(readRaw) : null,
     createdAt: DateTime.parse(json['createdAt'] as String),
   );
 }

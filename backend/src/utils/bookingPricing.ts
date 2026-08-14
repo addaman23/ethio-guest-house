@@ -6,9 +6,20 @@ export interface BookingPricing {
   subtotalEtb: number;
   platformFeeEtb: number;
   hostPayoutEtb: number;
-  /** Amount the guest pays on arrival (equals rent subtotal). */
+  /** Full stay rent the guest owes overall. */
   totalEtb: number;
+  /** Guest prepay: 10% of total stay, due 1 day before check-in. */
+  depositEtb: number;
+  /** Remaining amount paid on arrival after deposit. */
+  balanceOnArrivalEtb: number;
   platformCommissionRate: number;
+}
+
+/** Calendar day before check-in (YYYY-MM-DD). */
+export function depositDueDate(checkIn: string): string {
+  const d = new Date(`${checkIn}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().slice(0, 10);
 }
 
 export function calculateBookingPricing(
@@ -18,6 +29,8 @@ export function calculateBookingPricing(
   const subtotalEtb = nightlyRateEtb * nights;
   const platformFeeEtb = Math.round(subtotalEtb * config.platformCommissionRate);
   const hostPayoutEtb = subtotalEtb - platformFeeEtb;
+  const depositEtb = Math.round(subtotalEtb * config.platformCommissionRate);
+  const balanceOnArrivalEtb = subtotalEtb - depositEtb;
 
   return {
     nights,
@@ -26,13 +39,20 @@ export function calculateBookingPricing(
     platformFeeEtb,
     hostPayoutEtb,
     totalEtb: subtotalEtb,
+    depositEtb,
+    balanceOnArrivalEtb,
     platformCommissionRate: config.platformCommissionRate,
   };
 }
 
 export function backfillBookingPricingFromTotal(totalEtb: number): Pick<
   BookingPricing,
-  "subtotalEtb" | "platformFeeEtb" | "hostPayoutEtb" | "totalEtb"
+  | "subtotalEtb"
+  | "platformFeeEtb"
+  | "hostPayoutEtb"
+  | "totalEtb"
+  | "depositEtb"
+  | "balanceOnArrivalEtb"
 > {
   const platformFeeEtb = Math.round(totalEtb * config.platformCommissionRate);
   return {
@@ -40,5 +60,7 @@ export function backfillBookingPricingFromTotal(totalEtb: number): Pick<
     platformFeeEtb,
     hostPayoutEtb: totalEtb - platformFeeEtb,
     totalEtb,
+    depositEtb: platformFeeEtb,
+    balanceOnArrivalEtb: totalEtb - platformFeeEtb,
   };
 }

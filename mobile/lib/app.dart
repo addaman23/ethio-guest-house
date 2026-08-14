@@ -9,7 +9,7 @@ class EthioGuestHouseApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Ethio Guest House',
+      title: 'AddisAbaba Guest Houses',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       routerConfig: AppRouter.router,

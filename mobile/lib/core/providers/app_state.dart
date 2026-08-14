@@ -55,6 +55,8 @@ class AppState extends ChangeNotifier {
       roles: _user!.roles,
       activeRole: role,
       hostVerified: _user!.hostVerified,
+      hostBlocked: _user!.hostBlocked,
+      guestCountry: _user!.guestCountry,
     );
     _persistUser();
     notifyListeners();

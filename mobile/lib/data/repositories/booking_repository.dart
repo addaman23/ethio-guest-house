@@ -1,3 +1,4 @@
+import '../../domain/models/app_notification.dart';
 import '../../domain/models/booking.dart';
 import '../../domain/models/booking_status.dart';
 
@@ -17,5 +18,8 @@ abstract class BookingRepository {
   Future<Booking> approve(String bookingId);
   Future<Booking> decline(String bookingId);
   Future<Booking> markPaid(String bookingId);
+  Future<Booking> markDepositPaid(String bookingId);
   Future<Booking> cancel(String bookingId);
+  Future<List<AppNotification>> listNotifications({bool unreadOnly = false});
+  Future<void> markNotificationRead(String notificationId);
 }

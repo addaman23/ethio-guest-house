@@ -1,6 +1,6 @@
-# Ethio Guest House — Node API
+# AddisAbaba Guest Houses — Node API
 
-Express + TypeScript REST API for the Ethiopia guest house booking platform.
+Express + TypeScript REST API for the Addis Ababa guest house booking platform.
 
 ## Stack
 
@@ -42,6 +42,36 @@ POST /v1/auth/otp/verify
 
 Use header on protected routes: `Authorization: Bearer <token>`
 
+## SMS OTP (production)
+
+Locally, `SMS_PROVIDER=console` logs the message and you use `OTP_DEMO_CODE` (default `123456`).
+
+For real SMS, pick one in `.env`:
+
+### Twilio
+
+```env
+SMS_PROVIDER=twilio
+TWILIO_ACCOUNT_SID=ACxxxxxxxx
+TWILIO_AUTH_TOKEN=xxxxxxxx
+TWILIO_FROM=+1xxxxxxxxxx
+```
+
+### Ethiopian / custom HTTP gateway
+
+Most local SMS APIs accept a JSON POST. Point env at their send URL and shape the body with placeholders `{{to}}`, `{{message}}`, `{{from}}`:
+
+```env
+SMS_PROVIDER=http
+SMS_HTTP_URL=https://api.your-sms-provider.com/send
+SMS_HTTP_API_KEY=your-token
+SMS_HTTP_API_KEY_HEADER=Authorization
+SMS_HTTP_FROM=AddisAbabaGH
+SMS_HTTP_BODY_TEMPLATE={"to":"{{to}}","message":"{{message}}","from":"{{from}}"}
+```
+
+Adjust `SMS_HTTP_BODY_TEMPLATE` and the API-key header to match the provider docs (AfroMessage, GeezSMS, etc.). In production, a failed SMS returns HTTP 503 from `/v1/auth/otp/request` — do not leave `SMS_PROVIDER=none`.
+
 ## Main endpoints
 
 | Area   | Method | Path |
@@ -81,6 +111,6 @@ Either:
 ## Production notes
 
 - Set strong `JWT_SECRET` and `ADMIN_API_KEY`
-- Replace demo OTP with Ethiopian SMS provider
+- Configure `SMS_PROVIDER` (`twilio` or `http`) — see above
 - Use PostgreSQL by changing `database.ts` (or add Prisma)
 - Add Telebirr webhook route under `/v1/payments/telebirr` (Phase 2)

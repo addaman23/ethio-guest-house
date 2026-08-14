@@ -93,114 +93,145 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign in')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Sign in with your mobile number. ${InternationalGuestConstants.countries.length} countries supported including Ethiopia, USA, Canada, UK, Germany, and Europe. Demo OTP: 123456.',
-              style: const TextStyle(color: Colors.black54),
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: _country.code,
-              decoration: const InputDecoration(
-                labelText: 'Your country',
-                prefixIcon: Icon(Icons.public),
+      appBar: AppBar(title: const Text('AddisAbaba Guest Houses')),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFF3F7F4), Color(0xFFE4EDE8), Color(0xFFF7F3EC)],
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Welcome',
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  color: const Color(0xFF0C2E24),
+                ),
               ),
-              items: InternationalGuestConstants.countries
-                  .map(
-                    (c) => DropdownMenuItem(
-                      value: c.code,
-                      child: Text('${c.flag} ${c.name} (${c.dialCode})'),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (code) {
-                if (code == null) return;
-                _applyCountry(InternationalGuestConstants.byCode(code));
-              },
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              decoration: InputDecoration(
-                labelText: 'Phone (${_country.dialCode}…)',
-                prefixIcon: const Icon(Icons.phone),
-                helperText: _country.code == 'ET'
-                    ? 'Ethiopian format: +251 followed by 9 digits'
-                    : 'Include country code, e.g. ${_country.dialCode}…',
+              const SizedBox(height: 6),
+              Text(
+                'Sign in with your mobile number. Demo OTP: 123456.',
+                style: theme.textTheme.bodyMedium,
               ),
-            ),
-            if (_otpSent) ...[
+              const SizedBox(height: 22),
+              DropdownButtonFormField<String>(
+                value: _country.code,
+                decoration: const InputDecoration(
+                  labelText: 'Your country',
+                  prefixIcon: Icon(Icons.public),
+                ),
+                items: InternationalGuestConstants.countries
+                    .map(
+                      (c) => DropdownMenuItem(
+                        value: c.code,
+                        child: Text('${c.flag} ${c.name} (${c.dialCode})'),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (code) {
+                  if (code == null) return;
+                  _applyCountry(InternationalGuestConstants.byCode(code));
+                },
+              ),
               const SizedBox(height: 16),
               TextField(
-                controller: _codeController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'OTP code',
-                  prefixIcon: Icon(Icons.lock_outline),
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                  labelText: 'Phone (${_country.dialCode}…)',
+                  prefixIcon: const Icon(Icons.phone),
+                  helperText: _country.code == 'ET'
+                      ? 'Ethiopian format: +251 followed by 9 digits'
+                      : 'Include country code, e.g. ${_country.dialCode}…',
                 ),
               ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Name (new users only)',
+              if (_otpSent) ...[
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _codeController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'OTP code',
+                    prefixIcon: Icon(Icons.lock_outline),
+                  ),
                 ),
-              ),
-              if (_hint != null) ...[
                 const SizedBox(height: 8),
-                Text(_hint!, style: const TextStyle(fontSize: 12, color: Colors.green)),
+                TextField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Name (new users only)',
+                  ),
+                ),
+                if (_hint != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _hint!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: const Color(0xFF1F6B52),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ],
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: _loading
+                    ? null
+                    : (_otpSent ? _verify : _requestOtp),
+                child: _loading
+                    ? const SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(_otpSent ? 'Verify & continue' : 'Send OTP'),
+              ),
+              const SizedBox(height: 28),
+              Text(
+                'Quick demo accounts',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: const Color(0xFF0C2E24),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ActionChip(
+                    label: const Text('Guest (ET)'),
+                    onPressed: _loading ? null : () => _quickLogin('+251911000001', 'ET'),
+                  ),
+                  ActionChip(
+                    label: const Text('Guest (USA)'),
+                    onPressed: _loading ? null : () => _quickLogin('+12025550101', 'US'),
+                  ),
+                  ActionChip(
+                    label: const Text('Guest (Canada)'),
+                    onPressed: _loading ? null : () => _quickLogin('+14165550102', 'CA'),
+                  ),
+                  ActionChip(
+                    label: const Text('Guest (UK)'),
+                    onPressed: _loading ? null : () => _quickLogin('+447911123456', 'GB'),
+                  ),
+                  ActionChip(
+                    label: const Text('Host'),
+                    onPressed: _loading ? null : () => _quickLogin('+251988013094', 'ET'),
+                  ),
+                ],
+              ),
             ],
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _loading
-                  ? null
-                  : (_otpSent ? _verify : _requestOtp),
-              child: _loading
-                  ? const SizedBox(
-                      height: 22,
-                      width: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(_otpSent ? 'Verify & continue' : 'Send OTP'),
-            ),
-            const SizedBox(height: 24),
-            const Text('Quick demo accounts', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                ActionChip(
-                  label: const Text('Guest (ET)'),
-                  onPressed: _loading ? null : () => _quickLogin('+251911000001', 'ET'),
-                ),
-                ActionChip(
-                  label: const Text('Guest (USA)'),
-                  onPressed: _loading ? null : () => _quickLogin('+12025550101', 'US'),
-                ),
-                ActionChip(
-                  label: const Text('Guest (Canada)'),
-                  onPressed: _loading ? null : () => _quickLogin('+14165550102', 'CA'),
-                ),
-                ActionChip(
-                  label: const Text('Guest (UK)'),
-                  onPressed: _loading ? null : () => _quickLogin('+447911123456', 'GB'),
-                ),
-                ActionChip(
-                  label: const Text('Host'),
-                  onPressed: _loading ? null : () => _quickLogin('+251988013094', 'ET'),
-                ),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );

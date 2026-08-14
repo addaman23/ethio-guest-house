@@ -37,12 +37,16 @@ class BookingPriceSummary extends StatelessWidget {
               _line('You receive', '${b.hostPayoutEtb} ETB', bold: true),
             ],
             if (audience == BookingPriceAudience.guest) ...[
+              _line(
+                '10% deposit (due 1 day before check-in)',
+                '${b.platformFeeEtb} ETB',
+              ),
               const Divider(height: 16),
-              _line('Pay on arrival', '${b.totalEtb} ETB', bold: true),
+              _line('Balance on arrival', '${b.subtotalEtb - b.platformFeeEtb} ETB', bold: true),
               const SizedBox(height: 6),
               Text(
-                'Ethio Guest House connects you with the host. '
-                '${PlatformCommission.percentLabel} of the rent supports the platform.',
+                'Pay the 10% deposit via WhatsApp before check-in. '
+                'The remaining balance is paid on arrival in ETB.',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54),
               ),
             ],

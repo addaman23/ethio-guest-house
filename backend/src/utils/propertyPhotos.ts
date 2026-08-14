@@ -23,8 +23,8 @@ export function toPublicImageUrl(stored: string): string {
   if (stored.startsWith("http://") || stored.startsWith("https://")) {
     return stored;
   }
-  const base = config.publicBaseUrl.replace(/\/$/, "");
-  return `${base}${stored.startsWith("/") ? stored : `/${stored}`}`;
+  // Relative paths so guests on localhost or LAN IP both see uploads.
+  return stored.startsWith("/") ? stored : `/${stored}`;
 }
 
 export function toStoredImagePath(publicUrl: string): string {

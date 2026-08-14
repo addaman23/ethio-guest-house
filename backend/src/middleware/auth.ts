@@ -15,13 +15,22 @@ declare global {
   }
 }
 
+/** Pick the longest session for the user's highest-privilege role. */
+export function sessionExpiresForRoles(roles: UserRole[]): string {
+  if (roles.includes("admin")) return config.jwtExpiresAdmin;
+  if (roles.includes("host")) return config.jwtExpiresHost;
+  return config.jwtExpiresGuest;
+}
+
 export function signToken(user: UserRow): string {
+  const roles = parseRoles(user.roles);
   const payload: JwtPayload = {
     sub: user.id,
     phone: user.phone,
-    roles: parseRoles(user.roles),
+    roles,
   };
-  return jwt.sign(payload, config.jwtSecret, { expiresIn: "30d" });
+  const expiresIn = sessionExpiresForRoles(roles) as jwt.SignOptions["expiresIn"];
+  return jwt.sign(payload, config.jwtSecret, { expiresIn });
 }
 
 export function requireAuth(req: Request, _res: Response, next: NextFunction): void {

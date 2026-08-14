@@ -1,4 +1,4 @@
-# Ethio Guest House — Living Specification
+# AddisAbaba Guest House — Living Specification
 
 **Version:** 0.1 (MVP hypothesis)  
 **Market:** Ethiopia  

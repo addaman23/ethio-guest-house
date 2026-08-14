@@ -27,13 +27,13 @@ export function bookingRequestToJson(
     contact: {
       whatsapp: phoneDigits
         ? `https://wa.me/${phoneDigits}?text=${encodeURIComponent(
-            `Hello ${row.guest_name}, regarding your Ethio Guest Houses booking request.`
+            `Hello ${row.guest_name}, regarding your AddisAbaba Guest Houses booking request.`
           )}`
         : null,
       phone: `tel:${row.guest_phone.replace(/\s/g, "")}`,
       email: row.guest_email
         ? `mailto:${row.guest_email}?subject=${encodeURIComponent(
-            "Ethio Guest Houses booking request"
+            "AddisAbaba Guest Houses booking request"
           )}`
         : null,
       viber: phoneDigits ? `viber://chat?number=%2B${phoneDigits}` : null,

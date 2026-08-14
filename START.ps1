@@ -1,10 +1,10 @@
-# Ethio Guest House — start full stack (API + mobile web + admin web)
+# AddisAbaba Guest Houses — start full stack (API + mobile web + admin web)
 # Requires: Node.js, Flutter SDK with Chrome
 
 $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
 
-Write-Host "=== Ethio Guest House ===" -ForegroundColor Cyan
+Write-Host "=== AddisAbaba Guest Houses ===" -ForegroundColor Cyan
 
 # Backend
 Write-Host "`n[1/3] Starting API on http://localhost:3000 ..." -ForegroundColor Yellow
@@ -40,5 +40,5 @@ Write-Host "  Admin:         http://localhost:8081  (uses X-Admin-Key automatica
 Write-Host "`nDemo flow:"
 Write-Host "  1. Open website > Browse guest houses > open a stay (videos on property page)"
 Write-Host "  2. Demo (/demo) or Mobile > Guest > book a stay"
-Write-Host "  3. Host (+251988013094) > approve booking; add YouTube tour videos on Host tab"
+Write-Host "  3. Host (+251988013094) > approve booking; upload tour videos on Host tab"
 Write-Host "  4. Admin > approve pending listings (prop_3)"

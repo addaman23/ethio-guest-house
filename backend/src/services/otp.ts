@@ -1,9 +1,13 @@
 import { config } from "../config";
 import { getDb } from "../db/database";
+import { HttpError } from "../middleware/errorHandler";
+import { sendSms } from "./sms";
 
 const OTP_TTL_MINUTES = 10;
 
-export function requestOtp(phone: string): { sent: boolean; demoHint?: string } {
+export async function requestOtp(
+  phone: string
+): Promise<{ sent: boolean; demoHint?: string }> {
   const db = getDb();
   const code =
     config.nodeEnv === "development"
@@ -17,7 +21,21 @@ export function requestOtp(phone: string): { sent: boolean; demoHint?: string } 
      ON CONFLICT(phone) DO UPDATE SET code = excluded.code, expires_at = excluded.expires_at`
   ).run(phone, code, expiresAt);
 
-  // TODO: integrate Ethiopian SMS provider (e.g. local gateway)
+  const message = `Your AddisAbaba Guest Houses code is ${code}. Valid for ${OTP_TTL_MINUTES} minutes.`;
+
+  if (config.nodeEnv === "development" && config.sms.provider === "console") {
+    await sendSms(phone, message);
+    return {
+      sent: true,
+      demoHint: `Development mode: use OTP code ${config.otpDemoCode}`,
+    };
+  }
+
+  const result = await sendSms(phone, message);
+  if (!result.ok) {
+    console.error("[otp] SMS send failed:", result.error);
+    throw new HttpError(503, "Could not send SMS OTP. Try again shortly.");
+  }
 
   if (config.nodeEnv === "development") {
     return {

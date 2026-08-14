@@ -33,7 +33,7 @@ class RolePickerScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Choose mode'),
+        title: const Text('AddisAbaba Guest Houses'),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -44,35 +44,53 @@ class RolePickerScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Signed in as ${user.name} (${user.phone})'),
-            const SizedBox(height: 24),
-            if (user.canBeGuest)
-              _RoleCard(
-                icon: Icons.travel_explore,
-                title: 'Guest',
-                subtitle: 'Search and book guest houses',
-                onTap: () => _select(context, UserRole.guest),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFF3F7F4), Color(0xFFE8F0EB)],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Continue as',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: const Color(0xFF0C2E24),
+                    ),
               ),
-            if (user.canBeGuest && user.canBeHost) const SizedBox(height: 16),
-            if (user.canBeHost)
-              _RoleCard(
-                icon: Icons.house_outlined,
-                title: 'Host',
-                subtitle: 'Manage properties and reservations',
-                onTap: () => _select(context, UserRole.host),
+              const SizedBox(height: 6),
+              Text(
+                'Signed in as ${user.name} (${user.phone})',
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
-          ],
+              const SizedBox(height: 28),
+              if (user.canBeGuest)
+                _RoleCard(
+                  icon: Icons.travel_explore,
+                  title: 'Guest',
+                  subtitle: 'Search and book guest houses',
+                  onTap: () => _select(context, UserRole.guest),
+                ),
+              if (user.canBeGuest && user.canBeHost) const SizedBox(height: 16),
+              if (user.canBeHost)
+                _RoleCard(
+                  icon: Icons.house_outlined,
+                  title: 'Host',
+                  subtitle: 'Manage properties and reservations',
+                  onTap: () => _select(context, UserRole.host),
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
-
 class _RoleCard extends StatelessWidget {
   const _RoleCard({
     required this.icon,
@@ -102,9 +120,14 @@ class _RoleCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: const Color(0xFF0C2E24),
+                          ),
+                    ),
                     const SizedBox(height: 4),
-                    Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+                    Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
                   ],
                 ),
               ),

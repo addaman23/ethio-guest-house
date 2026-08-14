@@ -74,7 +74,6 @@ Allow: /
 Disallow: /demo
 Disallow: /owner
 Disallow: /v1/
-Disallow: /uploads/
 
 Sitemap: ${base}/sitemap.xml
 `);

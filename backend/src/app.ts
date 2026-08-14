@@ -12,6 +12,7 @@ import metaRoutes from "./routes/meta";
 import propertiesRoutes from "./routes/properties";
 import analyticsRoutes from "./routes/analytics";
 import bookingRequestsRoutes from "./routes/bookingRequests";
+import notificationsRoutes from "./routes/notifications";
 import webRoutes from "./web/routes";
 
 export function createApp() {
@@ -58,6 +59,7 @@ export function createApp() {
   v1.use("/booking-requests", bookingRequestsRoutes);
   v1.use("/properties", propertiesRoutes);
   v1.use("/bookings", bookingsRoutes);
+  v1.use("/notifications", notificationsRoutes);
   v1.use("/host", hostRoutes);
   v1.use("/admin", adminRoutes);
 

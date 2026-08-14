@@ -72,7 +72,7 @@ class PropertyDetailScreen extends StatelessWidget {
                         title: Text('Pay on arrival'),
                         subtitle: Text(
                           'Host approves your request first. Pay in ETB when you check in. '
-                          'Ethio Guest House charges the host ${PlatformCommission.percentLabel} of rent for connecting guests and guest houses.',
+                          'AddisAbaba Guest House charges the host ${PlatformCommission.percentLabel} of rent for connecting guests and guest houses.',
                         ),
                       ),
                     ),

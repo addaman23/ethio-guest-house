@@ -1,6 +1,6 @@
-# Ethio Guest House
+# AddisAbaba Guest Houses
 
-Guest house booking platform for **Ethiopia**: one Flutter mobile app (guest + host), pay on arrival (ETB), host approval flow, **Telebirr** planned for Phase 2, and a **web admin panel**.
+Guest house booking platform for **Addis Ababa**: one Flutter mobile app (guest + host), pay on arrival (ETB), host approval flow, **Telebirr** planned for Phase 2, and a **web admin panel**.
 
 ## Your decisions (locked)
 
@@ -47,7 +47,7 @@ The guest-facing site is served from the API process (server-rendered HTML for G
 4. On the server, use `PUBLIC_BASE_URL=https://ethioguesthouses.com` (see `backend/.env.production.example`).
 5. Submit `https://ethioguesthouses.com/sitemap.xml` in [Google Search Console](https://search.google.com/search-console).
 
-**House videos:** hosts add YouTube/Vimeo links or upload MP4/WebM via the demo Host tab (or API `POST /v1/host/properties/:id/videos`).
+**House videos:** hosts can upload MP4/WebM/MOV files and/or add optional YouTube/Vimeo links via the demo Host tab.
 
 ## Prerequisites
 

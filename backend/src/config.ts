@@ -7,6 +7,10 @@ export const config = {
   port: parseInt(process.env.PORT ?? "3000", 10),
   nodeEnv: process.env.NODE_ENV ?? "development",
   jwtSecret: process.env.JWT_SECRET ?? "dev-secret-change-me",
+  /** Session length by role (hosts/admins stay signed in longer). */
+  jwtExpiresGuest: process.env.JWT_EXPIRES_GUEST ?? "30d",
+  jwtExpiresHost: process.env.JWT_EXPIRES_HOST ?? "180d",
+  jwtExpiresAdmin: process.env.JWT_EXPIRES_ADMIN ?? "365d",
   databasePath:
     process.env.DATABASE_PATH ??
     path.join(process.cwd(), "data", "ethio_guest_house.db"),
@@ -27,5 +31,34 @@ export const config = {
   contactPhone: process.env.CONTACT_PHONE ?? "+251988013094",
   contactWhatsapp: process.env.CONTACT_WHATSAPP ?? "+251988013094",
   contactViber: process.env.CONTACT_VIBER ?? "+251988013094",
-  contactLabel: process.env.CONTACT_LABEL ?? "Ethio Guest Houses · Addis Ababa",
+  contactLabel: process.env.CONTACT_LABEL ?? "Addis Ababa Guest Houses",
+  /**
+   * SMS OTP delivery.
+   * SMS_PROVIDER: console | twilio | http | none
+   * - development defaults to console (logs OTP; OTP_DEMO_CODE still used)
+   * - production should use twilio or http (Ethiopian gateway)
+   */
+  sms: {
+    provider: (process.env.SMS_PROVIDER ??
+      (process.env.NODE_ENV === "production" ? "none" : "console")) as
+      | "console"
+      | "twilio"
+      | "http"
+      | "none",
+    fromName: process.env.SMS_FROM_NAME ?? "AddisAbabaGH",
+    twilio: {
+      accountSid: process.env.TWILIO_ACCOUNT_SID ?? "",
+      authToken: process.env.TWILIO_AUTH_TOKEN ?? "",
+      from: process.env.TWILIO_FROM ?? "",
+    },
+    http: {
+      url: process.env.SMS_HTTP_URL ?? "",
+      apiKey: process.env.SMS_HTTP_API_KEY ?? "",
+      /** Header name for the API key (default Authorization → Bearer …). */
+      apiKeyHeader: process.env.SMS_HTTP_API_KEY_HEADER ?? "Authorization",
+      from: process.env.SMS_HTTP_FROM ?? process.env.SMS_FROM_NAME ?? "AddisAbabaGH",
+      /** JSON with {{to}}, {{message}}, {{from}} placeholders. */
+      bodyTemplate: process.env.SMS_HTTP_BODY_TEMPLATE ?? "",
+    },
+  },
 };

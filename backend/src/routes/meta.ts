@@ -14,7 +14,7 @@ router.get("/international", (_req, res) => {
     platformCommissionPercent: Math.round(config.platformCommissionRate * 100),
     paymentNote:
       "Prices are shown in Ethiopian Birr (ETB). Reference amounts in USD, CAD, EUR, and GBP are estimates only.",
-    platformNote: `Ethio Guest House charges hosts a ${Math.round(config.platformCommissionRate * 100)}% fee on rent for connecting guests with guest houses.`,
+    platformNote: `AddisAbaba Guest House charges hosts a ${Math.round(config.platformCommissionRate * 100)}% fee on rent for connecting guests with guest houses.`,
   });
 });
 

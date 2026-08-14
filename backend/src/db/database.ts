@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT NOT NULL,
   roles TEXT NOT NULL DEFAULT 'guest',
   host_verified INTEGER NOT NULL DEFAULT 0,
+  host_blocked INTEGER NOT NULL DEFAULT 0,
   guest_country TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -60,6 +61,10 @@ CREATE TABLE IF NOT EXISTS bookings (
   status TEXT NOT NULL DEFAULT 'pending_approval',
   payment_method TEXT NOT NULL DEFAULT 'pay_on_arrival',
   payment_status TEXT NOT NULL DEFAULT 'unpaid',
+  deposit_etb INTEGER NOT NULL DEFAULT 0,
+  deposit_due_at TEXT,
+  deposit_status TEXT NOT NULL DEFAULT 'not_due',
+  deposit_reminded_at TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -100,6 +105,17 @@ CREATE TABLE IF NOT EXISTS booking_requests (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS notifications (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id),
+  booking_id TEXT,
+  type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  read_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_properties_city ON properties(city);
 CREATE INDEX IF NOT EXISTS idx_properties_host ON properties(host_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_guest ON bookings(guest_id);
@@ -109,6 +125,8 @@ CREATE INDEX IF NOT EXISTS idx_site_events_type ON site_events(event_type);
 CREATE INDEX IF NOT EXISTS idx_site_events_visitor ON site_events(visitor_id);
 CREATE INDEX IF NOT EXISTS idx_booking_requests_status ON booking_requests(status);
 CREATE INDEX IF NOT EXISTS idx_booking_requests_created ON booking_requests(created_at);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at);
 `;
 
 function migrateSchema(database: Database.Database): void {
@@ -125,6 +143,16 @@ function migrateSchema(database: Database.Database): void {
   const userCols = database.prepare("PRAGMA table_info(users)").all() as { name: string }[];
   if (!userCols.some((c) => c.name === "guest_country")) {
     database.exec("ALTER TABLE users ADD COLUMN guest_country TEXT");
+  }
+  if (!userCols.some((c) => c.name === "host_blocked")) {
+    database.exec("ALTER TABLE users ADD COLUMN host_blocked INTEGER NOT NULL DEFAULT 0");
+  }
+
+  const adminActionCols = database
+    .prepare("PRAGMA table_info(admin_actions)")
+    .all() as { name: string }[];
+  if (adminActionCols.length > 0 && !adminActionCols.some((c) => c.name === "notes")) {
+    database.exec("ALTER TABLE admin_actions ADD COLUMN notes TEXT");
   }
 
   const bookingCols = database.prepare("PRAGMA table_info(bookings)").all() as { name: string }[];
@@ -143,6 +171,42 @@ function migrateSchema(database: Database.Database): void {
   if (!bookingCols.some((c) => c.name === "guest_message")) {
     database.exec("ALTER TABLE bookings ADD COLUMN guest_message TEXT");
   }
+  if (!bookingCols.some((c) => c.name === "deposit_etb")) {
+    database.exec("ALTER TABLE bookings ADD COLUMN deposit_etb INTEGER NOT NULL DEFAULT 0");
+    database.exec("ALTER TABLE bookings ADD COLUMN deposit_due_at TEXT");
+    database.exec(
+      "ALTER TABLE bookings ADD COLUMN deposit_status TEXT NOT NULL DEFAULT 'not_due'"
+    );
+    database.exec("ALTER TABLE bookings ADD COLUMN deposit_reminded_at TEXT");
+    database.exec(`
+      UPDATE bookings SET
+        deposit_etb = CASE
+          WHEN deposit_etb = 0 THEN CAST(ROUND(COALESCE(NULLIF(subtotal_etb, 0), total_etb) * 0.10) AS INTEGER)
+          ELSE deposit_etb
+        END,
+        deposit_due_at = COALESCE(
+          deposit_due_at,
+          date(check_in, '-1 day')
+        )
+      WHERE deposit_etb = 0 OR deposit_due_at IS NULL
+    `);
+  }
+
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS notifications (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id),
+      booking_id TEXT,
+      type TEXT NOT NULL,
+      title TEXT NOT NULL,
+      body TEXT NOT NULL,
+      read_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
+    CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at);
+    CREATE INDEX IF NOT EXISTS idx_bookings_deposit_due ON bookings(deposit_due_at);
+  `);
 }
 
 export function getDb(): Database.Database {

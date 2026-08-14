@@ -1,4 +1,5 @@
 import '../../core/api/api_client.dart';
+import '../../domain/models/app_notification.dart';
 import '../../domain/models/booking.dart';
 import '../../domain/models/booking_status.dart';
 import '../api/model_parsers.dart';
@@ -84,8 +85,31 @@ class ApiBookingRepository implements BookingRepository {
   }
 
   @override
+  Future<Booking> markDepositPaid(String bookingId) async {
+    final res = await _api.post('/bookings/$bookingId/deposit-paid');
+    return parseBooking(res['booking'] as Map<String, dynamic>);
+  }
+
+  @override
   Future<Booking> cancel(String bookingId) async {
     final res = await _api.post('/bookings/$bookingId/cancel');
     return parseBooking(res['booking'] as Map<String, dynamic>);
+  }
+
+  @override
+  Future<List<AppNotification>> listNotifications({bool unreadOnly = false}) async {
+    final res = await _api.get(
+      '/notifications',
+      query: unreadOnly ? {'unread': '1'} : null,
+    );
+    final list = res['notifications'] as List<dynamic>? ?? [];
+    return list
+        .map((e) => parseNotification(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
+  Future<void> markNotificationRead(String notificationId) async {
+    await _api.post('/notifications/$notificationId/read');
   }
 }

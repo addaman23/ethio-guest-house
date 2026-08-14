@@ -7,15 +7,20 @@ Production: `https://ethioguesthouses.com/v1` (same host as the public website u
 ## Auth
 
 - `POST /auth/otp/request` — `{ "phone": "+2519..." }`
-- `POST /auth/otp/verify` — `{ "phone", "code" }` → `{ "token", "user" }`
+- `POST /auth/otp/verify` — `{ "phone", "code" }` → `{ "token", "expiresIn", "user" }`
+  - Session length: guest **30d**, host **180d**, admin **365d** (env: `JWT_EXPIRES_*`)
 
 ## Guest
 
 - `GET /properties?city=&checkIn=&checkOut=&guests=&minPrice=&maxPrice=`
 - `GET /properties/:id`
-- `POST /bookings` — create → `pending_approval`
+- `POST /bookings` — create → `pending_approval` (sets 10% `depositEtb`, due 1 day before check-in)
 - `GET /bookings/mine`
 - `POST /bookings/:id/cancel`
+- `POST /bookings/:id/deposit-paid` — guest marks 10% deposit paid (demo / after WhatsApp pay)
+- `GET /notifications` — in-app reminders (e.g. deposit due)
+- `POST /notifications/:id/read`
+- `POST /notifications/read-all`
 
 ## Host
 
@@ -28,7 +33,8 @@ Production: `https://ethioguesthouses.com/v1` (same host as the public website u
 - `GET /host/bookings?status=pending_approval`
 - `POST /host/bookings/:id/approve`
 - `POST /host/bookings/:id/decline`
-- `POST /host/bookings/:id/mark-paid` — optional on arrival
+- `POST /host/bookings/:id/mark-paid` — remaining balance on arrival
+- `POST /host/bookings/:id/deposit-paid` — confirm guest 10% deposit received
 
 ## Public website (HTML, not under /v1)
 
@@ -49,14 +55,19 @@ Production: `https://ethioguesthouses.com/v1` (same host as the public website u
 
 - `GET /admin/stats` — includes pageViews30d, uniqueVisitors30d, contact click totals
 - `GET /admin/users`
+- `GET /admin/hosts` — hosts + blocked former hosts
 - `POST /admin/hosts/:id/verify`
+- `POST /admin/hosts/:id/remove` — `{ "reason"? }` strip host role, suspend listings, block re-register
+- `POST /admin/hosts/:id/reinstate` — clear block so they can apply again
 - `GET /admin/properties?status=pending_review`
 - `POST /admin/properties/:id/approve`
 - `POST /admin/properties/:id/suspend`
-- `GET /admin/bookings`
+- `GET /admin/bookings?status=&depositStatus=`
+- `GET /admin/deposits?status=awaiting|paid|all` — 10% deposit tracker
 - `GET /admin/messages` — booking request inbox (new/contacted)
 - `POST /admin/messages/:id/contacted|approve|decline`
 - `POST /admin/bookings/:id/approve|decline`
+- `POST /admin/bookings/:id/deposit-paid` — confirm guest 10% deposit after WhatsApp
 
 ## Public booking requests
 
@@ -73,6 +84,10 @@ Production: `https://ethioguesthouses.com/v1` (same host as the public website u
   "checkOut": "2026-06-12",
   "guests": 2,
   "totalEtb": 2400,
+  "depositEtb": 240,
+  "depositDueAt": "2026-06-09",
+  "depositStatus": "not_due",
+  "balanceOnArrivalEtb": 2160,
   "status": "pending_approval",
   "paymentMethod": "pay_on_arrival",
   "paymentStatus": "unpaid"

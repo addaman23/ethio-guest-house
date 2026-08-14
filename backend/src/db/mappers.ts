@@ -4,6 +4,13 @@ import { PROPERTY_IMAGE_SETS } from "../utils/propertyImages";
 import { parseStoredImageUrls, toPublicImageUrl } from "../utils/propertyPhotos";
 import { videosFromRow } from "../utils/propertyVideos";
 import { formatListingPrice } from "../utils/pricing";
+import {
+  balanceOnArrivalEtb,
+  depositPayWhatsappHref,
+  depositRemindGuestWhatsappHref,
+  resolveDepositDueAt,
+  resolveDepositEtb,
+} from "../utils/deposit";
 
 function parsePropertyImageUrls(row: PropertyRow): string[] {
   const stored = parseStoredImageUrls(row);
@@ -27,6 +34,7 @@ export function userToJson(row: UserRow) {
     name: row.name,
     roles: parseRoles(row.roles),
     hostVerified: row.host_verified === 1,
+    hostBlocked: (row.host_blocked ?? 0) === 1,
     guestCountry: row.guest_country,
     createdAt: row.created_at,
   };
@@ -83,6 +91,9 @@ export function bookingToJson(
 
   const phone = extras?.guestPhone;
   const phoneDigits = phone ? phone.replace(/[^\d]/g, "") : "";
+  const depositEtb = resolveDepositEtb(row);
+  const depositDueAt = resolveDepositDueAt(row);
+  const balanceEtb = balanceOnArrivalEtb(row);
 
   return {
     id: row.id,
@@ -102,6 +113,15 @@ export function bookingToJson(
     hostPayoutEtb: hostPayout,
     platformCommissionRate: config.platformCommissionRate,
     totalEtb: row.total_etb,
+    depositEtb,
+    depositDueAt,
+    depositStatus: row.deposit_status || "not_due",
+    depositRemindedAt: row.deposit_reminded_at ?? null,
+    balanceOnArrivalEtb: balanceEtb,
+    depositWhatsappHref: depositPayWhatsappHref(row, extras?.guestName),
+    depositRemindGuestWhatsappHref: phone
+      ? depositRemindGuestWhatsappHref(phone, row, extras?.guestName)
+      : null,
     status: row.status,
     paymentMethod: row.payment_method,
     paymentStatus: row.payment_status,
@@ -110,7 +130,7 @@ export function bookingToJson(
       ? {
           whatsapp: phoneDigits
             ? `https://wa.me/${phoneDigits}?text=${encodeURIComponent(
-                `Hello ${extras?.guestName ?? ""}, regarding your Ethio Guest Houses booking.`
+                `Hello ${extras?.guestName ?? ""}, regarding your AddisAbaba Guest Houses booking.`
               )}`
             : null,
           phone: `tel:${phone.replace(/\s/g, "")}`,

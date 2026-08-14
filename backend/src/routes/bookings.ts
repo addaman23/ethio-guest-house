@@ -6,23 +6,28 @@ import { requireAuth } from "../middleware/auth";
 import { HttpError } from "../middleware/errorHandler";
 import type { BookingRow, PropertyRow, UserRow } from "../types";
 import { newId, nightsBetween } from "../utils/ids";
-import { calculateBookingPricing } from "../utils/bookingPricing";
+import { calculateBookingPricing, depositDueDate } from "../utils/bookingPricing";
 import { syncBookingToRequestInbox } from "../utils/bookingRequests";
+import {
+  ensureBookingDepositFields,
+  markDepositPaid,
+} from "../utils/deposit";
 
 const router = Router();
 
 function enrichBooking(row: BookingRow) {
+  const ensured = ensureBookingDepositFields(row);
   const db = getDb();
   const prop = db
     .prepare("SELECT title, city FROM properties WHERE id = ?")
-    .get(row.property_id) as { title: string; city: string } | undefined;
+    .get(ensured.property_id) as { title: string; city: string } | undefined;
   const guest = db
     .prepare("SELECT name, phone, guest_country FROM users WHERE id = ?")
-    .get(row.guest_id) as
+    .get(ensured.guest_id) as
     | { name: string; phone: string; guest_country: string | null }
     | undefined;
 
-  return bookingToJson(row, {
+  return bookingToJson(ensured, {
     propertyTitle: prop?.title,
     propertyCity: prop?.city,
     guestName: guest?.name,
@@ -78,6 +83,7 @@ router.post("/", (req, res, next) => {
 
     const id = newId("bk");
     const pricing = calculateBookingPricing(property.nightly_rate_etb, nights);
+    const depositDueAt = depositDueDate(body.checkIn);
     const guestMessage = body.message?.trim() || null;
 
     getDb()
@@ -85,8 +91,9 @@ router.post("/", (req, res, next) => {
         `INSERT INTO bookings (
           id, property_id, guest_id, check_in, check_out, guests,
           total_etb, subtotal_etb, platform_fee_etb, host_payout_etb,
-          status, payment_method, payment_status, guest_message
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_approval', 'pay_on_arrival', 'unpaid', ?)`
+          status, payment_method, payment_status, guest_message,
+          deposit_etb, deposit_due_at, deposit_status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_approval', 'pay_on_arrival', 'unpaid', ?, ?, ?, 'not_due')`
       )
       .run(
         id,
@@ -99,7 +106,9 @@ router.post("/", (req, res, next) => {
         pricing.subtotalEtb,
         pricing.platformFeeEtb,
         pricing.hostPayoutEtb,
-        guestMessage
+        guestMessage,
+        pricing.depositEtb,
+        depositDueAt
       );
 
     const row = getDb()
@@ -136,6 +145,31 @@ router.post("/:id/cancel", (req, res, next) => {
       .prepare("SELECT * FROM bookings WHERE id = ?")
       .get(req.params.id) as BookingRow;
 
+    res.json({ booking: enrichBooking(updated) });
+  } catch (e) {
+    next(e);
+  }
+});
+
+/** Demo / guest self-confirm: mark 10% deposit paid after WhatsApp payment. */
+router.post("/:id/deposit-paid", (req, res, next) => {
+  try {
+    const row = getDb()
+      .prepare("SELECT * FROM bookings WHERE id = ? AND guest_id = ?")
+      .get(req.params.id, req.user!.id) as BookingRow | undefined;
+
+    if (!row) {
+      throw new HttpError(404, "Booking not found");
+    }
+    if (row.status !== "confirmed") {
+      throw new HttpError(400, "Only confirmed bookings accept deposit payment");
+    }
+    if (row.deposit_status === "paid") {
+      res.json({ booking: enrichBooking(row) });
+      return;
+    }
+
+    const updated = markDepositPaid(row.id);
     res.json({ booking: enrichBooking(updated) });
   } catch (e) {
     next(e);

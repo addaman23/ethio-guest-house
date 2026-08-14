@@ -45,7 +45,7 @@ class _SplashScreenState extends State<SplashScreen> {
             const Icon(Icons.home_work_outlined, size: 72, color: Color(0xFF0D6E4F)),
             const SizedBox(height: 16),
             const Text(
-              'Ethio Guest House',
+              'AddisAbaba Guest House',
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
